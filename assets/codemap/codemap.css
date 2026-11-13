@@ -1,4 +1,4 @@
-/* The code map (assets/codemap.js). Group colours are the jewel tones of doc/figstyle.py (QUAL, in order), with
+/* The code map (assets/codemap.js). Group colors are the jewel tones of docs/figures/figstyle.py (QUAL, in order), with
    their dark-theme steps. */
 .codemap {
   --cm-g0: #4f46e5; --cm-g1: #e11d48; --cm-g2: #0d9488; --cm-g3: #d97706;
