@@ -1,0 +1,8 @@
+# The examples' environment: ThetaL, and DotPlots to draw in the terminal (not a dependency of ThetaL; from its repository)
+[deps]
+DotPlots = "572fe043-181e-453e-abc3-d66822b83b56"
+ThetaL = "d37c6b8c-a131-47f9-8e39-60da10e54005"
+
+[sources]
+DotPlots = {url = "https://github.com/scottweady/DotPlots.jl.git"}
+ThetaL = {path = ".."}

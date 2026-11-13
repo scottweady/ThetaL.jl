@@ -1,0 +1,19 @@
+/* Figures come in two renderings, <name>-light.png and <name>-dark.png (docs/figures/figstyle.py, FIGSTYLE_DOCS);
+   show the one that matches the Documenter theme. */
+img[src$="-dark.png"] { display: none; }
+html.theme--documenter-dark img[src$="-light.png"],
+html.theme--catppuccin-frappe img[src$="-light.png"],
+html.theme--catppuccin-macchiato img[src$="-light.png"],
+html.theme--catppuccin-mocha img[src$="-light.png"] { display: none; }
+html.theme--documenter-dark img[src$="-dark.png"],
+html.theme--catppuccin-frappe img[src$="-dark.png"],
+html.theme--catppuccin-macchiato img[src$="-dark.png"],
+html.theme--catppuccin-mocha img[src$="-dark.png"] { display: inline; }
+
+/* Wide figures use the whole column (!important: the theme sheets set img max-width with a theme-class selector) */
+img[src*="gallery-"], img[src*="convergence-"] { max-width: 100% !important; width: 100%; }
+
+/* Centre the main column in the space beside the fixed sidebar (20rem; column 52rem) on wide screens */
+@media screen and (min-width: 1056px) {
+  #documenter .docs-main { margin-left: max(20rem, calc(20rem + (100% - 72rem) / 2)) !important; }
+}

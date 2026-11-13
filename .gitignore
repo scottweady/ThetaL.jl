@@ -1,0 +1,5 @@
+Manifest.toml
+docs/build/
+__pycache__/
+.DS_Store
+*.jls

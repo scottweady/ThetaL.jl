@@ -1,0 +1,6 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+ThetaL = "d37c6b8c-a131-47f9-8e39-60da10e54005"
+
+[sources]
+ThetaL = {path = ".."}
