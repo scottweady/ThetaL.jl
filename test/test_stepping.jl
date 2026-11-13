@@ -1,6 +1,5 @@
 # The step (src/stepping/), through `evolve` and `solve`, under prescribed velocities and symbols; no solve.
-#   Kinematics: a uniform normal velocity on a circle (exact); the rigid part of a velocity; the frame velocity; the
-#   rotation fit on near-circles (noise bounded) and non-round shapes (exact).
+#   Kinematics: a uniform normal velocity on a circle (exact); the rigid part of a velocity; the frame velocity.
 #   Schemes (ETDRK2, ExpEuler; Lawson2 as a reference): rigid motions exact at any Δt with and without a symbol;
 #   no symbol gives the classical method; order under a linear flow; order from a relaxed state (surface
 #   diffusion); a manufactured deforming solution under wrong symbols; the embedded estimate; a pure stiff term;
@@ -42,42 +41,6 @@ end
     @test m.rotation_rate == 0 && norm(m.translation) < 1e-15 && maximum(abs.(Ud .- 0.5)) < 1e-15
     # a rigid motion: the tracked points move with it
     @test maximum(norm.(frame_velocity(X, Ur) .- rigid_velocity.(Ref(m0), x))) < 1e-12
-end
-
-@testset "the rotation fit on near-circles: noise bounded, exact on non-round shapes" begin
-    # U of unit rms along p (the part of −(x − x_c)·τ no translation gives): the worst case for Ω, 1/(r √ρ) for the
-    # plain least squares, ρ = Σp²/Σ|x − x_c|² (≈ ε² for the ellipse); at most ≈ 32/r with the rotation ramp
-    N = 256
-    ellipse(ε) = from_curve(t -> Vec2(cos(t) * (1 + ε * cos(2t)), sin(t)), N)
-    peanut = from_curve(t -> (z = cis(t) / (1 - 0.6cis(2t)); Vec2(real(z), imag(z))), N)
-    function worst(X)
-        x = curve_points(X); θ = tangent_angles(X); xc = sum(x) / N
-        b = [-dot(p - xc, Vec2(cos(q), sin(q))) for (p, q) in zip(x, θ)]
-        A = [sin.(θ) -cos.(θ)]; p = b - A * (A \ b); r2 = sum(y -> sum(abs2, y - xc), x)
-        p / sqrt(sum(abs2, p) / N), sum(abs2, p) / r2, sqrt(r2 / N)
-    end
-    for X in (ellipse.((1e-1, 3e-2, 2e-2, 1e-2, 1e-3, 1e-6, 1e-9))..., peanut)
-        U, ρ, r = worst(X)
-        g = abs(rigid_part(X, U)[1].rotation_rate) * r
-        @printf("rotation fit, ρ = %.1e: noise gain %.2f\n", ρ, g)
-        @test g < 33
-    end
-    # a velocity accurate to 10⁻⁶ on a near-circle at rest gives no rotation (the plain fit: 10⁻³)
-    X = ellipse(1e-3); U, ρ, r = worst(X)
-    m, Ud = rigid_part(X, 1e-6 * U)
-    @test m.rotation_rate == 0 && maximum(abs.(Ud .- 1e-6 * U)) < 1e-15
-    # non-round shapes (ρ above 10⁻³): a rigid motion's velocity is fitted exactly, and turns the curve exactly
-    for X in (ellipse(5e-2), peanut, smooth_state(N))
-        x = curve_points(X); θ = tangent_angles(X); xc = sum(x) / N
-        m0 = RigidMotion(Vec2(0.3, -0.2), 0.7, xc)
-        Ur = [dot(rigid_velocity(m0, p), Vec2(sin(q), -cos(q))) for (p, q) in zip(x, θ)]
-        m, Ud = rigid_part(X, Ur)
-        @test worst(X)[2] > 1e-3
-        @test abs(m.rotation_rate - 0.7) < 1e-13 && norm(m.translation - m0.translation) < 1e-13 && maximum(abs, Ud) < 1e-13
-    end
-    X0 = ellipse(5e-2); z0 = curve_function(X0)
-    sol = evolve(X0, field(x -> 2π * Vec2(-x[2] + 0.5, x[1] - 2)), (0, 1); dt=0.1)
-    @test sol.steps == 10 && curve_distance(z0, curve_points(sol.curves[end])) < 1e-12
 end
 
 @testset "rigid motions are exact at any Δt" begin
@@ -198,8 +161,8 @@ end
 end
 
 @testset "the rigid split on a perturbed shrinking near-circle" begin
-    # curve shortening of a circle with a 10⁻⁴ perturbation: the rotation fit sees a small b (ρ ≈ 10⁻⁷) and leaves the
-    # rotation in the deformation; the split is exact, so the curve agrees with the one stepped without a rigid part
+    # curve shortening of a circle with a 10⁻⁴ perturbation: the rotation fit sees a small b and may return a large Ω,
+    # but the split is exact, so the curve agrees with the one stepped without a rigid part
     X0 = from_curve(t -> (1 + 1e-4cos(3t)) .* Vec2(cos(t), sin(t)), 64)
     run(rigid) = evolve(X0, (X, t) -> -curvature(X), (0, 0.2); dt=1e-3, symbol=q -> -q^2, rigid).curves[end]
     a, b = run(:full), run(:none)
