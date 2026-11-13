@@ -18,7 +18,8 @@ and length ``L``, sampled at ``N`` points equally spaced in arclength. It does t
   wavenumber ``q`` along the curve (the symbol, ``\sigma < 0`` damping: `q -> -q^2` for ``U = -\kappa``); the step
   integrates that part exactly with an exponential integrator, so the time step is not tied to the grid spacing.
 - **Integrates rigid motion exactly.** The rigid part of each curve's velocity (translation and rotation) is taken
-  out and integrated exactly: a curve that turns or drifts without deforming does so to roundoff at any time step.
+  out and integrated exactly: a curve that turns or drifts without deforming does so to roundoff at any time step
+  (a near-circle's rotation, which its normal velocity barely shows, is left to the deformation).
 
 It knows nothing of the physics behind ``F``. In the [Examples](@ref) it is mean curvature flow, a flow field, or the
 pressure outside bubbles in a Hele-Shaw cell (above), solved by the caller with a boundary integral, or the bending

@@ -85,14 +85,32 @@ rotation rate Ω about the center x_c (the mean of the grid points) whose normal
 U_rig = V·n − Ω (x − x_c)·τ is closest to `U` on the grid (least squares; equal arclength);
 `U_deformation = U − U_rig`.
 
-- `mode = :full`: translation and rotation. The rotation is left out (Ω = 0) when the curve gives it no weight:
-  the rms of (x − x_c)·τ, once the translations are projected out, below 10⁻¹² of the rms radius (a circle).
+- `mode = :full`: translation and rotation. On a circle a rotation has no normal velocity, so on a near-circle the
+  fit turns small errors in `U` into a large Ω: up to 1/(r √ρ) per unit rms of `U`, with r the rms radius,
+  ρ = Σ p² / Σ |x − x_c|² over the grid and p the part of (x − x_c)·τ that no translation gives (ρ ≈ ε² for
+  an ellipse of axes 1 and 1 + ε, ≈ 0.2 for a two-lobed shape). So the rotation is weighted by a C¹ ramp in ρ:
+  the plain least-squares Ω for ρ ≥ 10⁻³ (rigid rotation exact), none for ρ ≤ 10⁻⁴, the smoothstep between; the
+  gain stays below 33/r. The rotation not taken out stays in `U_deformation`, which the step integrates (correct,
+  not exact at any Δt; a near-circle's rotation hardly changes it).
 - `mode = :translation`: translation only.
 - `mode = :none`: no rigid part (`NO_RIGID_MOTION`, U returned as it is).
 """
 function rigid_part(X::ThetaLState, U::AbstractVector; mode::Symbol=:full)
     Ud = Vector{Float64}(undef, length(X.φ))
     _rigid_part!(Ud, X, U, mode), Ud
+end
+
+# The weight of the fitted rotation for ρ = Σp²/Σ|x − x_c|² (`rigid_part`): 0 for ρ ≤ ρ₀, 1 for ρ ≥ ρ₁, the C¹
+# smoothstep between (Ω continuous and C¹ as a shape crosses the band; a hard cutoff would jump by 1/(r√ρ) times
+# the error in U). The noise gain s(ρ)/(r√ρ) is at most 32.2/r. Fixed: ρ is a shape measure (free of scale and N),
+# and only the exactness of a near-circle's rotation, which barely moves it, depends on the band.
+const _ROTATION_RAMP = (1e-4, 1e-3)
+function _rotation_weight(ρ::Float64)
+    ρ₀, ρ₁ = _ROTATION_RAMP
+    ρ >= ρ₁ && return 1.0
+    ρ <= ρ₀ && return 0.0
+    t = (ρ - ρ₀) / (ρ₁ - ρ₀)
+    t^2 * (3 - 2t)
 end
 
 # the rigid motion, with U_deformation written into Ud
@@ -134,7 +152,8 @@ function _rigid_part!(Ud::Vector{Float64}, X::ThetaLState, U::AbstractVector, mo
             p = b[j] - (tb[1] * sn[j] - tb[2] * cs[j])
             bb += p^2; bU += p * U[j]
         end
-        Ω = bb > 1e-24 * r2 ? bU / bb : 0.0
+        s = _rotation_weight(bb / r2)                  # both sums over the grid: ρ independent of N
+        Ω = s > 0 ? s * bU / bb : 0.0                  # (the rest of the rotation stays in Ud, by V below)
     end
     V = tU - Ω * tb
     for j in 1:N
