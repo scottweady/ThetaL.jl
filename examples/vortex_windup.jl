@@ -1,4 +1,4 @@
-# Wind-up in a vortex with ThetaL: a disk off the centre of the Lamb–Oseen vortex u = ω(r)(−y, x),
+# Wind-up in a vortex with ThetaL: a disk off the center of the Lamb–Oseen vortex u = ω(r)(−y, x),
 # ω(r) = (1 − e^{−r²})/r², is sheared into a spiral. Each point keeps its radius and turns at ω(r); the curve
 # lengthens and sharpens, and N doubles as it needs to. No `symbol`: the motion is not stiff; the step integrates
 # the rigid part of the motion (the mean rotation and the drift of the disk) exactly, and the shear explicitly.

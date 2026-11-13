@@ -1,9 +1,9 @@
 # Matplotlib style of ThetaL's documentation figures: serif text and math, boxed axes with inward ticks,
 # no grid, no titles, axis labels "description, symbol", italic panel labels (a), (b), lines
-# with filled circle markers, black dashed lines for references, legends without a frame. Colours by the data's job
+# with filled circle markers, black dashed lines for references, legends without a frame. Colors by the data's job
 # (QUAL qualitative, SEQ sequential, DIV diverging).
 #   import sys; sys.path.insert(0, <this folder>); import figstyle as fs; fs.apply()
-# Docs mode (FIGSTYLE_DOCS=light or dark): a transparent background, black ink for the light theme and light grey
+# Docs mode (FIGSTYLE_DOCS=light or dark): a transparent background, black ink for the light theme and light gray
 # for the dark one; `save` then writes docs/src/assets/<name>-light.png or <name>-dark.png (the site's
 # CSS shows the one matching the theme).
 import os
@@ -15,15 +15,15 @@ from matplotlib.colors import LinearSegmentedColormap
 
 DOCS = os.environ.get("FIGSTYLE_DOCS", "")       # "", "light" or "dark"
 INK = "#d4d4d4" if DOCS == "dark" else "black"
-GREY = "0.5" if DOCS == "dark" else "0.55"
-# Colour by the data's job (one rule each); every role has its own steps for the dark docs theme:
+GRAY = "0.5" if DOCS == "dark" else "0.55"
+# Color by the data's job (one rule each); every role has its own steps for the dark docs theme:
 #   qualitative (identity: cases, methods, mesh classes): QUAL, in this fixed order, never cycled — jewel tones
 #     indigo, rose, teal, amber, violet, lime, sky, pink (checked: light on
 #     white, worst adjacent CVD ΔE 10.2, normal-vision 24.3, all ≥ 3:1 contrast; dark on #1f2424, CVD 8.3,
 #     normal-vision 21.8, all ≥ 3:1; the first three slots separate in every pairing in both modes);
 #   sequential (an ordered parameter, a magnitude): SEQ, one hue (indigo) with monotone lightness, from the
 #     strongest contrast with the background to the weakest; seq(n) samples it;
-#   diverging (a signed quantity about a reference): DIV, indigo → neutral grey → rose;
+#   diverging (a signed quantity about a reference): DIV, indigo → neutral gray → rose;
 #   fields of a magnitude with white arrows: FIELD, dark → light, monotone lightness.
 DARK = DOCS == "dark"
 QUAL = (["#6875f5", "#f05470", "#14a394", "#c97a0a", "#9b6cf6", "#4d9e1a", "#2493d1", "#e7559c"] if DARK else
@@ -108,7 +108,7 @@ def apply(name=None):
 
 
 def seq(n):
-    """n colours along the sequential map, dark (first) to light (last)."""
+    """n colors along the sequential map, dark (first) to light (last)."""
     return [SEQ(x) for x in (np.linspace(0, 1, n) if n > 1 else [0.5])]
 
 
@@ -119,7 +119,7 @@ def panel(ax, label):
 
 
 def line(ax, x, y, color, marker=True, **kw):
-    """Data line with filled circle markers of the same colour."""
+    """Data line with filled circle markers of the same color."""
     return ax.plot(x, y, "-o" if marker else "-", color=color, mfc=color, mec=color, **kw)
 
 
@@ -149,7 +149,7 @@ def sparse(ax, x, y, n=18):
     s = np.r_[0, np.cumsum(ds)]
     k = np.minimum((s / s[-1] * n).astype(int), n - 1)
     seg = np.searchsorted(cut, np.arange(len(x)), side="right")
-    big = np.bincount(seg)[seg] >= 3                 # isolated columns are overlap artefacts
+    big = np.bincount(seg)[seg] >= 3                 # isolated columns are overlap artifacts
     sel = []
     for i in range(n):                               # one point per bin, from its most populated segment
         m = (k == i) & big

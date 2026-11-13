@@ -81,7 +81,7 @@ end
     rigid_part(X, U; mode = :full) -> (motion::RigidMotion, U_deformation)
 
 The rigid motion in the normal velocity `U` of the curve `X`, and the rest. The motion is the translation V and
-rotation rate Ω about the centre x_c (the mean of the grid points) whose normal velocity
+rotation rate Ω about the center x_c (the mean of the grid points) whose normal velocity
 U_rig = V·n − Ω (x − x_c)·τ is closest to `U` on the grid (least squares; equal arclength);
 `U_deformation = U − U_rig`.
 

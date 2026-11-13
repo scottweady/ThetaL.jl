@@ -1,5 +1,5 @@
 # Terminal plots of θ–L curves with DotPlots (loaded with `using ThetaL, DotPlots`): a curve or a vector of curves is
-# one frame, an `Evolution` one frame per saved time, coloured by time. The keywords are DotPlots' (`animate`,
+# one frame, an `Evolution` one frame per saved time, colored by time. The keywords are DotPlots' (`animate`,
 # `every`, `width`, …).
 module ThetaLDotPlotsExt
 

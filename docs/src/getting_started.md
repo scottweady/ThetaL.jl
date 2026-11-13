@@ -35,7 +35,7 @@ save_curves("star.csv", sol)                          # t, curve id, x, y
 ```
 
 With [DotPlots](https://github.com/scottweady/DotPlots.jl) loaded (`using DotPlots`), `dotplot(sol)` draws the saved
-curves in the terminal, overlaid and coloured by time; `dotplot(sol; animate = true)` plays them first, and
+curves in the terminal, overlaid and colored by time; `dotplot(sol; animate = true)` plays them first, and
 `dotplot(sol(0.1))` draws one time. The keywords are DotPlots' (`width`, `every`, …).
 
 - The curve may be a parametrization, a `ThetaLState`, or a vector of them (several curves, with `U(Xs, t)`

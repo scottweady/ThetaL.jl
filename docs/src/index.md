@@ -33,7 +33,7 @@ U = (X, t) -> -curvature(X)
 tspan = (0, 0.1)
 sol = evolve(X, U, tspan; dt = 1e-3, symbol = q -> -q^2, saveat = 0.02)
 area(sol(0.1))     # ≈ A₀ − 2π·0.1: curve shortening removes area at the rate 2π
-dotplot(sol)       # the curves in the terminal, coloured by time
+dotplot(sol)       # the curves in the terminal, colored by time
 ```
 
 ## What it offers

@@ -4,7 +4,7 @@
 // on the right (folds down to files, one dot per top-level function), and a curve from each setting to the visible
 // rows whose functions it runs beyond its scheme (a scheme: beyond the base case, which is joined to everything it
 // runs), its width growing with their number. Hovering or clicking a setting
-// colours the functions it runs; hovering a dot names the function and the settings that run it. The list below
+// colors the functions it runs; hovering a dot names the function and the settings that run it. The list below
 // the graph spells out the selection.
 (function () {
   // ---- configuration for ThetaL ----
@@ -263,10 +263,10 @@
 
     function showLegend(k) {
       legend.textContent = "";
-      const item = (cls, text, colour) => {
+      const item = (cls, text, color) => {
         const it = el("span", "cm-legend-item");
         const dot = el("span", "cm-dot " + cls);
-        if (colour) { dot.style.background = colour; dot.style.borderColor = colour; }
+        if (color) { dot.style.background = color; dot.style.borderColor = color; }
         it.append(dot, document.createTextNode(text));
         legend.append(it);
       };

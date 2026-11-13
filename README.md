@@ -15,9 +15,9 @@ A curve is held as its tangent angle θ(α) and length L, α ∈ [0, 2π) an equ
 equispaced α (`ThetaLState`: φ = θ − α, L, and the point x₀ at α = 0). Conventions (outward normal
 n = (sin θ, −cos θ), κ = θ_s > 0 on convex parts) and the equations are in the module docstring, `?ThetaL`.
 
-Documentation: `docs/` (a Documenter site: getting started, the method, examples, the API reference and a code
-map): `julia --project=docs -e 'using Pkg; Pkg.instantiate()'` once, then `julia --project=docs docs/make.jl`, and
-open `docs/build/index.html`.
+Documentation: https://scottweady.github.io/ThetaL.jl/ (getting started, the method, examples, the API reference
+and a code map). To build it locally: `julia --project=docs -e 'using Pkg; Pkg.instantiate()'` once, then
+`julia --project=docs docs/make.jl`, and open `docs/build/index.html`.
 
 ## One call
 
@@ -31,7 +31,7 @@ sol = evolve(X, (X, t) -> -curvature(X), (0, 0.1); dt = 1e-3, symbol = q -> -q^2
 sol.t                                # 0, 0.02, …, 0.1 (landed on exactly)
 area(sol(0.1))                       # ≈ A₀ − 2π·0.1
 save_curves("star.csv", sol)         # t, curve id, x, y for every saved curve
-dotplot(sol)                         # the saved curves in the terminal, coloured by time (DotPlots)
+dotplot(sol)                         # the saved curves in the terminal, colored by time (DotPlots)
 ```
 
 `evolve(curve, U, tspan; dt, symbol, saveat, tol, Nmax, scheme, rigid, callback, coarsen, verbose)`: `curve` is a

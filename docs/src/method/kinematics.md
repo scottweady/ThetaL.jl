@@ -46,7 +46,7 @@ curve, at every stage of every step, into its rigid part and the rest:
 U = U_{\mathrm{rig}} + U_d, \qquad U_{\mathrm{rig}} = V \cdot n - \Omega\, (x - x_c) \cdot \tau,
 ```
 
-where the translation ``V`` and rotation rate ``\Omega`` about the centre ``x_c`` (the mean of the grid points) give
+where the translation ``V`` and rotation rate ``\Omega`` about the center ``x_c`` (the mean of the grid points) give
 the rigid normal velocity closest to ``U`` on the grid (least squares; `rigid_part`). The rigid part moves the
 curve without moving the points along it: it adds ``\Omega`` to ``\theta_t`` and carries ``x_0`` on the rigid
 motion, ``z' = i\Omega z + a`` in complex form, which the step integrates exactly. The deformation ``U_d`` goes

@@ -1,7 +1,7 @@
 # The figures of ThetaL's documentation, from the CSV files of make_data.jl, in the light and dark renderings of the
 # site (docs/src/assets/<name>-light.png, -dark.png):
 #   for m in light dark; do FIGSTYLE_DOCS=$m python docs/figures/plot_figures.py; done
-# (from the package root). Curves at successive times are coloured along the sequential map (time is ordered); schemes and
+# (from the package root). Curves at successive times are colored along the sequential map (time is ordered); schemes and
 # variants by the qualitative palette.
 import os, sys
 import numpy as np
@@ -30,7 +30,7 @@ def read(name):
 
 
 def curves_at_times(ax, name, scale_area=False, lw=1.0):
-    """Every curve of a gallery CSV, coloured by its time (sequential, light = later)."""
+    """Every curve of a gallery CSV, colored by its time (sequential, light = later)."""
     d = read(name)
     times = np.unique(d["t"])
     cols = fs.seq(len(times))
@@ -77,7 +77,7 @@ def checks():
     fs.panel(axs[1], "b")
     d = read("coarsening_radii.csv")
     ids = np.unique(d["curve"])
-    order = np.argsort([d["radius"][d["curve"] == i][0] for i in ids])     # coloured by initial radius
+    order = np.argsort([d["radius"][d["curve"] == i][0] for i in ids])     # colored by initial radius
     cols = fs.seq(len(ids))[::-1]
     for c, i in zip(cols, ids[order]):
         m = d["curve"] == i
@@ -89,7 +89,7 @@ def checks():
 
 
 def slope(ax, x0, y0, p, label, decades=1.0):
-    """A dashed reference line of slope p from (x0, y0) down `decades` in x, labelled at its lower end."""
+    """A dashed reference line of slope p from (x0, y0) down `decades` in x, labeled at its lower end."""
     x = np.array([x0, x0 * 10 ** (-decades)])
     ax.plot(x, y0 * (x / x0) ** p, "k--", lw=0.8)
     ax.annotate(label, (x[1], y0 * (x[1] / x0) ** p), textcoords="offset points", xytext=(-3, 0), fontsize=8,

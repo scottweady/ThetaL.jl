@@ -19,7 +19,7 @@ filament by a vortex, and twelve particles coarsening under a mean field.
 
 *(a)* Curve shortening removes area at the rate ``2\pi``: the star's area against ``A_0 - 2\pi t``. *(b)* So does
 anisotropic curve shortening, ``\int(\gamma + \gamma'')\,d\vartheta = 2\pi``: the area against ``\pi - 2\pi t``.
-*(c)* The radii ``L/2\pi`` of the coarsening particles, coloured by their initial size: the small ones vanish and are
+*(c)* The radii ``L/2\pi`` of the coarsening particles, colored by their initial size: the small ones vanish and are
 removed, the large ones grow, and each vanishing changes the mean field the rest feel.
 
 ## Geometric flows
@@ -40,10 +40,10 @@ Wulff shape (drawn scaled to area ``\pi``).
 
 ## Flows
 
-**`rigid_rotation.jl`**: a star centred at (1, 0) turning about the origin, ``U = u \cdot n`` with
+**`rigid_rotation.jl`**: a star centered at (1, 0) turning about the origin, ``U = u \cdot n`` with
 ``u = 2\pi(-y, x)``, ten steps a turn: the rigid motion is integrated exactly, so the star keeps its shape.
 
-**`vortex_windup.jl`**: a disk off the centre of a Lamb–Oseen vortex wound into a spiral (each point turns at
+**`vortex_windup.jl`**: a disk off the center of a Lamb–Oseen vortex wound into a spiral (each point turns at
 ``\omega(r)``); N doubles as the filament lengthens and sharpens.
 
 ## Several curves
