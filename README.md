@@ -104,8 +104,8 @@ first evaluation). The end evaluation is the next step's first stage. Per curve 
     stage i:  φ̂⁽ⁱ⁾ = e^{cᵢz} φ̂ + h Σⱼ Aᵢⱼ(z) Rⱼ,   end:  φ̂ₙ₊₁ = e^{z} φ̂ + h Σᵢ bᵢ(z) Rᵢ,   z = σh,
 
 with R = θ_t − σφ̂ explicit, L by the same weights at z = 0, and x₀ by the averaged rigid motion (exact when it is
-constant). Rigid motion is exact for every scheme; the exponential weights keep a state at rest fixed under a
-symbol.
+constant). Rigid motion is exact for every scheme (the rotation of a near-circle, which U barely shows, is left to
+the deformation: `rigid_part`); the exponential weights keep a state at rest fixed under a symbol.
 
 ## Limits
 

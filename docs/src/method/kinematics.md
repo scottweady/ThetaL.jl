@@ -55,8 +55,15 @@ mean of ``\phi`` moves, by ``\Omega h``, which every scheme integrates exactly: 
 exact to roundoff at any time step ([Method overview](@ref), panel (a)).
 
 The split needs only ``U``, not the material tangential velocity. A curve whose shape is steady while material flows
-along it (an edge current) has ``U = 0`` and stays exactly steady. On a circle the rotation is invisible in ``U``
-and is left out (`rigid_part` drops it when ``(x - x_c) \cdot \tau`` vanishes to roundoff). `CurveProblem(...;
+along it (an edge current) has ``U = 0`` and stays exactly steady. On a circle the rotation is invisible in ``U``,
+and on a near-circle the fit turns small errors in ``U`` into a large ``\Omega``: with ``p`` the part of
+``(x - x_c) \cdot \tau`` that no translation gives and ``\rho = \sum p^2 / \sum |x - x_c|^2`` over the grid, an rms
+error ``\delta`` in ``U`` gives up to ``\delta / (r \sqrt{\rho})`` in ``\Omega`` (``r`` the rms radius; ``\rho \approx
+\varepsilon^2`` for an ellipse of axes ``1`` and ``1 + \varepsilon``). So `rigid_part` weights the fitted rotation
+by a ``C^1`` ramp in ``\rho``: the least-squares ``\Omega`` for ``\rho \ge 10^{-3}`` (rigid rotation exact), none for
+``\rho \le 10^{-4}``, a smoothstep between, which keeps the gain below ``33/r``. The rotation not taken out stays
+in ``U_d`` and goes through the equations above: correct, only not exact at any step, for a curve whose rotation
+hardly changes it. `CurveProblem(...;
 rigid = :translation)` takes out the translation only; `rigid = :none` gives the plain Hou–Lowengrub–Shelley step.
 
 ## The velocity of the tracked points
