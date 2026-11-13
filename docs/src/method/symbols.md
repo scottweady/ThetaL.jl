@@ -24,6 +24,26 @@ A symbol that depends on the curve must bound the stiffness it stands for (aniso
 ``\gamma + \gamma''`` on the curve, `examples/anisotropy.jl`). A positive ``\sigma`` makes the exponential amplify
 that mode; ThetaL warns. A rate that is not a finite real number is an error.
 
+## Measuring the symbol
+
+`measure_symbol(problem)` measures the rates of the problem's velocity on one curve (the others held): for each
+mode ``k`` it perturbs ``\phi`` by ``\pm\varepsilon\cos k\alpha`` and ``\pm\varepsilon\sin k\alpha`` (``L`` and
+``x_0`` kept), forms ``\theta_t`` as the step does (rigid part out), and reads the rate
+``\lambda_k = \langle p, Jp\rangle/\langle p, p\rangle`` of ``p = e^{ik\alpha}`` from the central differences
+(four evaluations per mode; the velocity sees `ev.kind = :probe`). On a circle this is the exact linearization
+(curve shortening ``2 - q^2`` on the unit circle, surface diffusion ``q^2 - q^4``); on other curves the mode
+average, and with `windows = m` the rate of Gaussian packets at ``m`` places along the curve, which a varying
+stiffness needs. An imaginary part is a transport rate, left explicit.
+
+`check_symbol(problem; dt)` compares. Per mode the step treats ``\sigma`` exactly and ``(\lambda - \sigma)\hat\phi``
+explicitly, and multiplies ``\hat\phi`` by ``G(\sigma h, (\lambda-\sigma) h)`` (from the scheme's weights). For
+ETDRK2, ``G = e^{z} + w(\phi_1 - 2\phi_2)(z) + 2w\phi_2(z)\,(e^{z/2} + \tfrac{w}{2}\phi_1(z/2))`` with ``z = \sigma h``,
+``w = (\lambda - \sigma)h``; at large steps ``G \to r + 2r^2``, ``r = \lambda/\sigma - 1``, so the step is stable at
+every ``\Delta t`` only for ``0 \le \lambda/\sigma \le 3/2`` (ExpEuler: ``G \to -r``, ``0 \le \lambda/\sigma \le 2``).
+A weaker symbol leaves a limit ``\Delta t \sim 1/|\lambda|`` at the mode; the check reports, per mode, the largest
+step with ``|G| \le \max(1, e^{\mathrm{Re}\,\lambda h})``, and warns when that is below `dt` (without `dt`: when any
+measured mode has one). The step bears it out to a few percent (test/test_symbol_check.jl).
+
 ## The spectral filter
 
 Every scheme carries a `SpectralFilter(; order = 36, cutoff = 0)`: mode ``k`` is multiplied by

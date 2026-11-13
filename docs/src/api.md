@@ -37,6 +37,8 @@ frame_velocity
 rigid_part
 RigidMotion
 rigid_velocity
+measure_symbol
+check_symbol
 ```
 
 ## The problem and the velocity protocol
