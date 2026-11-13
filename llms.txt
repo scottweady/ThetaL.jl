@@ -11,6 +11,6 @@ User API: `evolve(curve, U, tspan; dt, symbol, saveat, tol, scheme, rigid, callb
 - Home: what it does, one call, what it offers
 - Getting started: installation, evolve, a problem and its integrator, the velocity protocol, the symbol, edits, rejection, restarts
 - Method: kinematics and the rigid split; schemes (exponential RK weights, the error estimate, adding a scheme); symbols, filter and resolution; limits (close approach, smoothness of the velocity, the tangential transport, the initial layer)
-- Examples: curve shortening, surface diffusion, step-size control, anisotropy, rigid rotation, wind-up in a vortex, coarsening
+- Examples: mean curvature flow, wind-up in a vortex, Hele-Shaw with one bubble, Hele-Shaw with three bubbles (several coupled curves), vesicles (Willmore flow with area and length held); further scripts in examples/: surface diffusion, step-size control, anisotropy, rigid rotation, coarsening
 - API reference: every exported name
 - Code map: which functions each feature runs, and the layout of src/
