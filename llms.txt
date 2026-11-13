@@ -1,0 +1,16 @@
+# ThetaL.jl
+
+> Julia package for the boundary evolution of closed plane curves in θ–L variables (Hou, Lowengrub & Shelley 1994). N curves move with outward normal velocities that may depend on all of them, (U_1, …, U_N) = F(X_1, …, X_N; t), computed by the caller; ThetaL keeps the curves at equal arclength, treats the stiff small scales exactly with exponential Runge–Kutta schemes (from a symbol per curve that the caller gives), and integrates the rigid part of each curve's motion exactly (rigid translation and rotation are exact at any time step).
+
+Source: not registered; `Pkg.develop(path = "…/ThetaL")`, Julia ≥ 1.10.
+
+User API: `evolve(curve, U, tspan; dt, symbol, saveat, tol, scheme, rigid, callback, coarsen, verbose)` in one call; `CurveProblem(curves, velocity; symbol, rigid, tags, validate)` with `velocity(Xs, ev::Evaluation; warm) -> U | (; U, ctx)` and `symbol = q -> σ` or `(q, X) -> σ` (the growth rate of a mode of wavenumber q = 2π|k|/L along the curve X, σ < 0 damping; `q -> -q^2` for U = −κ); `dotplot(sol)` with DotPlots loaded; state carried with the curves: `CurveProblem(…; bulk = BulkState(y0; symbol), fields = (; c = CurveField(c0; transport = :density | :material | :none, symbol)))`, the velocity reading `ev.bulk`, `ev.fields.c` and returning `(; U, W, rates = (; c), ydot)`, values in `integ.bulk`, `integ.fields`, `sol.bulk`, `sol.fields`; `init(problem, ETDRK2() | ExpEuler())`, `advance!(integ, t; errtol)` (exact landing, transactional, `:success | :rejected`), `step!`, `solve`, `progress_line`; edits `add_curve!`, `remove_curve!`, `set_curve!`, `offset_curve!`, `double_grid!`, `halve_grid!`; `checkpoint` and `init(...; from)`; `StepFailure` to reject a step; geometry `curve_points`, `curvature`, `tangent_angles`, `arclength_derivative`, `area`, `centroid`, `perimeter`, `velocity_components`; utilities `min_distance`, `curve_integral`, `offset_curve`, `remove_area_rate`, `frame_velocity`, `rigid_part`.
+
+## Docs
+
+- Home: what it does, one call, what it offers
+- Getting started: installation, evolve, a problem and its integrator, the velocity protocol, the symbol, edits, rejection, restarts
+- Method: kinematics and the rigid split; schemes (exponential RK weights, the error estimate, adding a scheme); symbols, filter and resolution; limits (close approach, smoothness of the velocity, the tangential transport, the initial layer)
+- Examples: curve shortening, surface diffusion, step-size control, anisotropy, rigid rotation, wind-up in a vortex, coarsening
+- API reference: every exported name
+- Code map: which functions each feature runs, and the layout of src/

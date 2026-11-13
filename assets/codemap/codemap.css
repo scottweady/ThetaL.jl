@@ -1,0 +1,110 @@
+/* The code map (assets/codemap.js). Group colours are the jewel tones of doc/figstyle.py (QUAL, in order), with
+   their dark-theme steps. */
+.codemap {
+  --cm-g0: #4f46e5; --cm-g1: #e11d48; --cm-g2: #0d9488; --cm-g3: #d97706;
+  --cm-g4: #7c3aed; --cm-g5: #65a30d; --cm-g6: #0284c7;
+  --cm-ink: #3f3f46; --cm-mid: #a1a1aa; --cm-faint: #d4d4d8; --cm-bg: #ffffff; --cm-tipbg: #ffffff;
+  --cm-some: #4f46e5;
+  margin: 1.5em 0;
+  font-size: 0.85rem;
+}
+html.theme--documenter-dark .codemap,
+html.theme--catppuccin-frappe .codemap,
+html.theme--catppuccin-macchiato .codemap,
+html.theme--catppuccin-mocha .codemap {
+  --cm-g0: #6875f5; --cm-g1: #f05470; --cm-g2: #14a394; --cm-g3: #c97a0a;
+  --cm-g4: #9b6cf6; --cm-g5: #4d9e1a; --cm-g6: #2493d1;
+  --cm-ink: #d4d4d8; --cm-mid: #71717a; --cm-faint: #3f3f46; --cm-bg: transparent; --cm-tipbg: #282f2f;
+  --cm-some: #818cf8;
+}
+
+.codemap .cm-graph { position: relative; display: grid; grid-template-columns: 12rem 1fr; column-gap: 5.5rem; }
+.codemap .cm-edges { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; }
+.codemap .cm-edges path { fill: none; opacity: 0.16; transition: opacity 0.12s; }
+.codemap .cm-edges path.on { opacity: 0.75; }
+.codemap .cm-edges path.off { opacity: 0; }
+
+.codemap .cm-left, .codemap .cm-right { position: relative; z-index: 1; }
+.codemap .cm-group { margin-bottom: 0.7em; }
+.codemap .cm-group-label, .codemap .cm-dir {
+  font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.65; margin: 0 0 0.2em;
+}
+.codemap .cm-dir { margin-top: 0.6em; }
+.codemap .cm-mod {
+  display: block; width: 100%; text-align: left; cursor: pointer; font: inherit; color: inherit;
+  background: none; border: none; border-top: 1px solid var(--cm-faint); padding: 0.35em 0 0.3em; margin: 0.5em 0 0.2em;
+}
+.codemap .cm-mod:first-child { margin-top: 0; border-top: none; padding-top: 0; }
+.codemap .cm-mod::before { content: "▸"; display: inline-block; width: 1.1em; opacity: 0.6; font-size: 1.1em; }
+.codemap .cm-mod.open::before { content: "▾"; }
+.codemap .cm-mod-name { font-weight: 600; }
+.codemap .cm-mod-about, .codemap .cm-mod-count { opacity: 0.65; }
+.codemap .cm-mod.hit:not(.open) .cm-mod-count { opacity: 1; color: var(--cm-c); font-weight: 600; }
+.codemap .cm-mod:focus-visible { outline: 2px solid var(--cm-ink); outline-offset: 1px; }
+.codemap .cm-mod-body { padding-left: 1.1em; }
+.codemap .cm-sub { border-top: none; padding: 0.1em 0; margin: 0.15em 0; font-size: 0.8rem; }
+.codemap .cm-sub .cm-mod-name { font-weight: 500; }
+.codemap .cm-dir:first-child { margin-top: 0; }
+.codemap .cm-setting {
+  display: block; width: 100%; text-align: left; cursor: pointer; font: inherit; color: inherit;
+  background: var(--cm-bg); border: 1px solid var(--cm-faint); border-left: 4px solid var(--cm-c);
+  border-radius: 3px; padding: 0.15em 0.5em; margin: 0 0 0.25em;
+}
+.codemap .cm-setting:hover, .codemap .cm-setting.on { border-color: var(--cm-c); }
+.codemap .cm-setting.on { background: color-mix(in srgb, var(--cm-c) 14%, transparent); font-weight: 600; }
+.codemap .cm-setting.uses { box-shadow: 0 0 0 2px var(--cm-c); }
+.codemap .cm-schemes-group .cm-setting { font-weight: 600; }
+.codemap .cm-options-label { margin: 0.9em 0 0.3em; padding-top: 0.5em; border-top: 1px solid var(--cm-faint);
+                             text-transform: none; letter-spacing: 0; }
+.codemap .cm-setting { display: flex; align-items: center; gap: 0.4em; }
+.codemap .cm-schemes { margin-left: auto; display: inline-flex; gap: 1px; font-size: 0.6rem; font-weight: 500; }
+.codemap .cm-scheme { width: 0.95em; text-align: center; opacity: 0.25; }
+.codemap .cm-scheme.ok { opacity: 0.8; }
+.codemap .cm-scheme.run { opacity: 1; text-decoration: underline; }
+.codemap .cm-setting.na { opacity: 0.35; }
+.codemap .cm-setting:focus-visible { outline: 2px solid var(--cm-c); outline-offset: 1px; }
+
+.codemap .cm-file { display: grid; grid-template-columns: 8.5rem 1fr; align-items: start; min-height: 20px; }
+.codemap .cm-file-name { font-family: var(--bs-font-monospace, monospace); font-size: 0.78rem; line-height: 20px;
+                         white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.codemap .cm-dots { display: flex; flex-wrap: wrap; gap: 3px; padding: 5px 0; }
+.codemap .cm-dot {
+  display: inline-block; width: 10px; height: 10px; border-radius: 2px; box-sizing: border-box;
+  border: 1.5px solid var(--cm-mid); background: transparent; cursor: default; flex: none;
+}
+.codemap .cm-dot.all { background: var(--cm-ink); border-color: var(--cm-ink); }
+.codemap .cm-dot.some { background: var(--cm-some); border-color: var(--cm-some); }
+.codemap .cm-dot.none { border-color: var(--cm-mid); }
+.codemap .cm-dot.shared { background: var(--cm-mid); border-color: var(--cm-mid); }
+.codemap .cm-dot.off { border-color: var(--cm-faint); }
+.codemap .cm-dots .cm-dot:hover { outline: 2px solid var(--cm-ink); outline-offset: 1px; }
+
+.codemap .cm-legend { display: flex; flex-wrap: wrap; gap: 0.4em 1.4em; margin: 0.9em 0 0.4em; font-size: 0.8rem; }
+.codemap .cm-legend-item { display: inline-flex; align-items: center; gap: 0.45em; }
+.codemap .cm-detail { border-top: 1px solid var(--cm-faint); padding-top: 0.6em; }
+.codemap .cm-detail p { margin: 0 0 0.6em; }
+.codemap .cm-detail .cm-hint { opacity: 0.7; }
+.codemap .cm-stamp { opacity: 0.6; font-size: 0.75rem; margin-top: 0.6em; }
+.codemap .cm-detail summary { cursor: pointer; margin: 0.3em 0; }
+.codemap .cm-list-row { display: grid; grid-template-columns: 11rem 1fr; gap: 0.6em; margin: 0.15em 0 0.35em; }
+.codemap .cm-list-file { font-family: var(--bs-font-monospace, monospace); font-size: 0.78rem; opacity: 0.7; }
+.codemap .cm-list-names { display: flex; flex-wrap: wrap; gap: 0.25em 0.35em; }
+.codemap code.cm-chip { font-size: 0.75rem; padding: 0.05em 0.3em; }
+
+.codemap .cm-tip {
+  display: none; position: fixed; z-index: 100; max-width: 26rem; pointer-events: none;
+  background: var(--cm-tipbg); border: 1px solid var(--cm-faint); border-radius: 4px; padding: 0.4em 0.6em;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); font-size: 0.8rem; line-height: 1.35;
+}
+.codemap .cm-tip-loc { opacity: 0.65; }
+.codemap .cm-tip-doc { margin-top: 0.2em; }
+.codemap .cm-tip-used { margin-top: 0.25em; opacity: 0.8; }
+
+/* narrow screens: the settings above the files, no curves */
+@media screen and (max-width: 760px) {
+  .codemap .cm-graph { grid-template-columns: 1fr; }
+  .codemap .cm-edges { display: none; }
+  .codemap .cm-left { display: flex; flex-wrap: wrap; gap: 0 1em; margin-bottom: 0.6em; }
+  .codemap .cm-setting { display: inline-flex; width: auto; margin-right: 0.3em; }
+  .codemap .cm-list-row { grid-template-columns: 1fr; gap: 0.1em; }
+}
