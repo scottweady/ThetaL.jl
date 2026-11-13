@@ -34,9 +34,11 @@ save_curves("star.csv", sol)         # t, curve id, x, y for every saved curve
 dotplot(sol)                         # the saved curves in the terminal, colored by time (DotPlots)
 ```
 
-`evolve(curve, U, tspan; dt, symbol, saveat, tol, Nmax, scheme, rigid, callback, coarsen, verbose)`: `curve` is a
-parametrization `ξ -> (x, y)`, a `ThetaLState`, or a vector of them; `U(X, t)` (or `U(Xs, t)` for several) returns
-the normal velocity at the grid points; `dt` is a number or `dt(X, t)`; N is chosen to `tol`, doubled when needed
+`evolve(curve, U, tspan; dt, symbol, saveat, tol, Nmax, scheme, rigid, callback, coarsen, verbose, adaptive, errtol,
+dtmin, dtmax)`: `curve` is a parametrization `ξ -> (x, y)`, a `ThetaLState`, or a vector of them; `U(X, t)` (or
+`U(Xs, t)` for several) returns the normal velocity at the grid points; `dt` is a number or `dt(X, t)`, or with
+`adaptive = true` the step is chosen from ETDRK2's embedded error estimate, kept below `errtol` (default 1e-5;
+`dt` then the first step, or a bound if a function; `dtmin`, `dtmax`); N is chosen to `tol`, doubled when needed
 and, with `coarsen = true`, halved when the curve has become smooth; `callback(integ)` runs after each step;
 `verbose = true` prints the time, steps, last Δt, N and evaluations at each saved time (`progress_line(integ)` gives
 that line when you drive the integrator yourself).
@@ -56,6 +58,7 @@ integ = init(prob, ETDRK2())                          # evaluates the velocity a
 status = advance!(integ, 0.1; errtol = 1e-6)          # one step to t = 0.1 exactly: :success or :rejected
 step!(integ, 0.01)                                    # one step of 0.01
 sol = solve(prob, ETDRK2(); tspan = (0, 1), dt = 0.01, saveat = 0.1)   # or the driver
+sol = solve(prob; tspan = (0, 1), adaptive = true, errtol = 1e-5)      # the step from the error estimate
 ```
 
 - **`velocity(Xs, ev::Evaluation; warm)`** returns one vector per curve (the normal velocity at its grid
@@ -120,8 +123,8 @@ the deformation: `rigid_part`); the exponential weights keep a state at rest fix
 - **Frozen symbols** must bound the true stiffness (anisotropy: the maximum of γ + γ″ on the curve).
 - **Initial layer.** From a shape far from equilibrium under a stiff symbol (surface diffusion, σ = −q⁴), the first steps
   are first order in Δt: the small scales decay within a step and drive L_t, which the explicit update of L follows
-  only for Δt ≪ 1/|σ|. Second order once relaxed (test/test_stepping.jl); `examples/step_control.jl` lets the error
-  estimate pick small steps there.
+  only for Δt ≪ 1/|σ|. Second order once relaxed (test/test_stepping.jl); `adaptive = true` in `evolve`/`solve`
+  lets the error estimate pick small steps there (`examples/step_control.jl`).
 
 ## Utilities
 
@@ -143,7 +146,7 @@ from its repository, to draw the curves in the terminal (played in place, then o
 | `rigid_rotation.jl` | a star turning about a point outside it, ten steps a turn, keeping its shape |
 | `vortex_windup.jl` | a disk wound into a spiral by a vortex; N doubles as the curve sharpens |
 | `coarsening.jl` | a coupled mean field, `init`/`advance!` by hand, particles removed as they vanish |
-| `step_control.jl` | step size from the embedded estimate (`errtol`, `stats.error_estimate`) |
+| `step_control.jl` | step size from the embedded estimate: `evolve(…; adaptive = true, errtol)`, and by hand (`advance!(…; errtol)`, `stats.error_estimate`) |
 | `anisotropy.jl` | a curve-dependent symbol `(q, X) -> σ`, `solve` on a `CurveProblem` |
 | `hele_shaw.jl` | an expanding bubble growing fingers: U from a boundary integral solve, `q -> -S * q^3`, N doubling |
 | `vesicles.jl` | Willmore flow of membranes with area and length held: a pressure and a tension per curve, `q -> -q^4` |

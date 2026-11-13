@@ -47,8 +47,10 @@ ETDRK2's end state and its embedded exponential Euler solution differ by ``2h\va
 R^{(1)})``, known after the midpoint stage, before the end evaluation. `advance!(integ, t; errtol)` rejects the step
 there when the estimate exceeds `errtol`, so a rejected step costs one velocity evaluation. The estimate of the
 last step is `integ.stats.error_estimate` (relative, the largest over the curves of ``\phi``, ``L`` and ``x_0``).
-It is ``O(h^2)`` once the small scales have relaxed and ``O(h)`` in an initial layer ([Limits](@ref)); a few lines
-of control on it are in `examples/step_control.jl`.
+It is ``O(h^2)`` once the small scales have relaxed and ``O(h)`` in an initial layer ([Limits](@ref)); `evolve` and
+`solve` control the step on it with `adaptive = true`: the next step is ``h \cdot \mathrm{clamp}(0.9\,
+(\mathrm{errtol}/\mathrm{err})^{1/2}, 0.2, 5)`` (the estimate is that of the order-1 step, ``O(h^2)``), a step over
+`errtol` is retried with the step so shrunk. `examples/step_control.jl` runs it, and the same few lines by hand.
 
 ## Adding a scheme
 
