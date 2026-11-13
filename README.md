@@ -145,6 +145,9 @@ from its repository, to draw the curves in the terminal (played in place, then o
 | `coarsening.jl` | a coupled mean field, `init`/`advance!` by hand, particles removed as they vanish |
 | `step_control.jl` | step size from the embedded estimate (`errtol`, `stats.error_estimate`) |
 | `anisotropy.jl` | a curve-dependent symbol `(q, X) -> σ`, `solve` on a `CurveProblem` |
+| `hele_shaw.jl` | an expanding bubble growing fingers: U from a boundary integral solve, `q -> -S * q^3`, N doubling |
+| `vesicles.jl` | Willmore flow of membranes with area and length held: a pressure and a tension per curve, `q -> -q^4` |
+| `hele_shaw_bubbles.jl` | three bubbles screening each other: one coupled velocity for all, Δt from `integ.U`, stopped at close approach |
 
 ```bash
 julia --project=examples examples/coarsening.jl

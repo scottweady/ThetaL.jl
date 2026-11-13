@@ -1,17 +1,63 @@
-/* Figures come in two renderings, <name>-light.png and <name>-dark.png (docs/figures/figstyle.py, FIGSTYLE_DOCS);
-   show the one that matches the Documenter theme. */
-img[src$="-dark.png"] { display: none; }
+/* Figures come in two renderings, <name>-light.png and <name>-dark.png (docs/figures/figstyle.py, FIGSTYLE_DOCS;
+   animations likewise as .gif); show the one that matches the Documenter theme. */
+img[src$="-dark.png"], img[src$="-dark.gif"] { display: none; }
 html.theme--documenter-dark img[src$="-light.png"],
 html.theme--catppuccin-frappe img[src$="-light.png"],
 html.theme--catppuccin-macchiato img[src$="-light.png"],
-html.theme--catppuccin-mocha img[src$="-light.png"] { display: none; }
+html.theme--catppuccin-mocha img[src$="-light.png"],
+html.theme--documenter-dark img[src$="-light.gif"],
+html.theme--catppuccin-frappe img[src$="-light.gif"],
+html.theme--catppuccin-macchiato img[src$="-light.gif"],
+html.theme--catppuccin-mocha img[src$="-light.gif"] { display: none; }
 html.theme--documenter-dark img[src$="-dark.png"],
 html.theme--catppuccin-frappe img[src$="-dark.png"],
 html.theme--catppuccin-macchiato img[src$="-dark.png"],
 html.theme--catppuccin-mocha img[src$="-dark.png"] { display: inline; }
 
+/* Animations and the examples' checks: centered in the column; a check at a moderate size */
+img[src$=".gif"], img[src*="check_"] { margin: 0 auto; }
+img[src*="check_"] { max-width: 26rem !important; width: 100%; }
+img[src*="check_vortex"] { max-width: 40rem !important; }
+img[src$="-light.gif"], img[src*="check_"][src$="-light.png"] { display: block; }
+html.theme--documenter-dark img[src*="check_"][src$="-light.png"],
+html.theme--catppuccin-frappe img[src*="check_"][src$="-light.png"],
+html.theme--catppuccin-macchiato img[src*="check_"][src$="-light.png"],
+html.theme--catppuccin-mocha img[src*="check_"][src$="-light.png"] { display: none; }
+html.theme--documenter-dark img[src$="-dark.gif"],
+html.theme--catppuccin-frappe img[src$="-dark.gif"],
+html.theme--catppuccin-macchiato img[src$="-dark.gif"],
+html.theme--catppuccin-mocha img[src$="-dark.gif"],
+html.theme--documenter-dark img[src*="check_"][src$="-dark.png"],
+html.theme--catppuccin-frappe img[src*="check_"][src$="-dark.png"],
+html.theme--catppuccin-macchiato img[src*="check_"][src$="-dark.png"],
+html.theme--catppuccin-mocha img[src*="check_"][src$="-dark.png"] { display: block; }
+
+/* An example's animation and its check in one row (one paragraph of images on the page): the animation on the left,
+   the check beside it; stacked on narrow screens */
+p:has(> img[src$=".gif"]) { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 2%; }
+p:has(> img[src$=".gif"]) > img { margin: 0 !important; width: 100%; height: auto; }
+p:has(> img[src$=".gif"]) > img[src$=".gif"] { max-width: 42% !important; }
+p:has(> img[src$=".gif"]) > img[src*="check_"] { max-width: 54% !important; }
+p:has(> img[src*="check_vortex"]) > img[src$=".gif"] { max-width: 34% !important; }
+p:has(> img[src*="check_vortex"]) > img[src*="check_"] { max-width: 64% !important; }
+@media screen and (max-width: 700px) {
+  p:has(> img[src$=".gif"]) > img { max-width: 100% !important; }
+}
+
 /* Wide figures use the whole column (!important: the theme sheets set img max-width with a theme-class selector) */
-img[src*="gallery-"], img[src*="convergence-"] { max-width: 100% !important; width: 100%; }
+img[src*="convergence-"] { max-width: 100% !important; width: 100%; }
+
+/* The hero image of the home page: a square, centered at a moderate size */
+img[src*="hero-"] { max-width: 22rem !important; width: 100%; margin: 0 auto; }
+img[src$="hero-light.png"] { display: block; }
+html.theme--documenter-dark img[src$="hero-light.png"],
+html.theme--catppuccin-frappe img[src$="hero-light.png"],
+html.theme--catppuccin-macchiato img[src$="hero-light.png"],
+html.theme--catppuccin-mocha img[src$="hero-light.png"] { display: none; }
+html.theme--documenter-dark img[src$="hero-dark.png"],
+html.theme--catppuccin-frappe img[src$="hero-dark.png"],
+html.theme--catppuccin-macchiato img[src$="hero-dark.png"],
+html.theme--catppuccin-mocha img[src$="hero-dark.png"] { display: block; }
 
 /* Center the main column in the space beside the fixed sidebar (20rem; column 52rem) on wide screens */
 @media screen and (min-width: 1056px) {

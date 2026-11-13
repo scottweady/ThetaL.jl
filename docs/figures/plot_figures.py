@@ -29,63 +29,74 @@ def read(name):
     return cols
 
 
-def curves_at_times(ax, name, scale_area=False, lw=1.0):
-    """Every curve of a gallery CSV, colored by its time (sequential, light = later)."""
-    d = read(name)
-    times = np.unique(d["t"])
-    cols = fs.seq(len(times))
-    for t, c in zip(times, cols):
-        sel = d["t"] == t
-        for cid in np.unique(d["curve"][sel]):
-            m = sel & (d["curve"] == cid)
-            x, y = d["x"][m], d["y"][m]
-            if scale_area:                           # scaled to the area π, about the centroid
-                A = 0.5 * abs(np.sum(x[:-1] * y[1:] - x[1:] * y[:-1]))
-                k = np.sqrt(np.pi / A)
-                x, y = (x - x.mean()) * k, (y - y.mean()) * k
-            ax.plot(x, y, color=c, lw=lw)
-    ax.set_aspect("equal")
-    ax.set_xticks([]); ax.set_yticks([])
-    return times
+def check(size=(3.4, 2.1)):
+    """A small figure for one example's section."""
+    fig, ax = plt.subplots(figsize=size)
+    return fig, ax
 
 
-def gallery():
-    fig, axs = plt.subplots(1, 5, figsize=(fs.WIDTH * 1.25, 1.75))
-    specs = [("gallery_mcf.csv", "curve shortening", False), ("gallery_sd.csv", "surface diffusion", False),
-             ("gallery_aniso.csv", "anisotropic, scaled", True), ("gallery_vortex.csv", "wind-up in a vortex", False),
-             ("gallery_coarsening.csv", "coarsening", False)]
-    for ax, (name, label, scale) in zip(axs, specs):
-        curves_at_times(ax, name, scale_area=scale, lw=0.9)
-        ax.set_xlabel(label)
-        for s in ax.spines.values():
-            s.set_visible(False)
-    fig.tight_layout(w_pad=0.5)
-    fs.save(fig, "gallery")
-
-
-def checks():
-    fig, axs = plt.subplots(1, 3, figsize=(fs.WIDTH, 2.0))
+def check_mcf():
     d = read("mcf_area.csv")
-    fs.line(axs[0], d["t"], d["area"], fs.QUAL[0], label="computed")
-    axs[0].plot(d["t"], d["exact"], "k--", lw=1.0, label=r"$A_0 - 2\pi t$")
-    axs[0].set_xlabel(r"time, $t$"); axs[0].set_ylabel(r"area, $A$"); axs[0].legend()
-    fs.panel(axs[0], "a")
-    d = read("aniso_area.csv")
-    fs.line(axs[1], d["t"], d["area"], fs.QUAL[0], label="computed")
-    axs[1].plot(d["t"], d["exact"], "k--", lw=1.0, label=r"$\pi - 2\pi t$")
-    axs[1].set_xlabel(r"time, $t$"); axs[1].set_ylabel(r"area, $A$"); axs[1].legend()
-    fs.panel(axs[1], "b")
-    d = read("coarsening_radii.csv")
-    ids = np.unique(d["curve"])
-    order = np.argsort([d["radius"][d["curve"] == i][0] for i in ids])     # colored by initial radius
-    cols = fs.seq(len(ids))[::-1]
-    for c, i in zip(cols, ids[order]):
-        m = d["curve"] == i
-        axs[2].plot(d["t"][m], d["radius"][m], color=c, lw=1.0)
-    axs[2].set_xlabel(r"time, $t$"); axs[2].set_ylabel(r"radius, $L/2\pi$")
-    fs.panel(axs[2], "c")
+    fig, ax = check()
+    fs.line(ax, d["t"], d["area"], fs.QUAL[0], label="computed")
+    ax.plot(d["t"], d["exact"], "k--", lw=1.0, label=r"$A_0 - 2\pi t$")
+    ax.set_xlabel(r"time, $t$"); ax.set_ylabel(r"area, $A$"); ax.legend()
     fig.tight_layout()
-    fs.save(fig, "checks")
+    fs.save(fig, "check_mcf")
+
+
+def check_vortex():
+    d = read("vortex_resolution.csv")
+    fig, axs = plt.subplots(1, 2, figsize=(fs.WIDTH * 0.85, 2.1))
+    fs.line(axs[0], d["t"], d["length"], fs.QUAL[0], marker=False)
+    axs[0].set_xlabel(r"time, $t$"); axs[0].set_ylabel(r"length, $L$")
+    fs.panel(axs[0], "a")
+    axs[1].step(d["t"], d["N"], where="post", color=fs.QUAL[0], lw=fs.LW)
+    axs[1].set_yscale("log", base=2)
+    axs[1].set_xlabel(r"time, $t$"); axs[1].set_ylabel(r"points, $N$")
+    fs.panel(axs[1], "b")
+    fig.tight_layout()
+    fs.save(fig, "check_vortex")
+
+
+def relative_area_error(ax, d, k=None, **kw):
+    m = np.ones(len(d["t"]), bool) if k is None else d["curve"] == k
+    ax.plot(d["t"][m], (d["area"][m] - d["exact"][m]) / d["exact"][m], lw=1.2, **kw)
+
+
+def check_hele_shaw():
+    d = read("hele_shaw_area.csv")
+    fig, ax = check()
+    relative_area_error(ax, d, color=fs.QUAL[0])
+    ax.axhline(0, color="k", ls="--", lw=0.8)
+    ax.set_xlabel(r"time, $t$"); ax.set_ylabel(r"$(A - A_0 - Jt)\,/\,(A_0 + Jt)$")
+    ax.ticklabel_format(axis="y", style="sci", scilimits=(0, 0))
+    fig.tight_layout()
+    fs.save(fig, "check_hele_shaw")
+
+
+def check_bubbles():
+    d = read("bubbles_area.csv")
+    fig, ax = check()
+    for k in np.unique(d["curve"]):
+        relative_area_error(ax, d, k, color=fs.QUAL[int(k) - 1], label=f"bubble {int(k)}")
+    ax.axhline(0, color="k", ls="--", lw=0.8)
+    ax.set_xlabel(r"time, $t$"); ax.set_ylabel(r"$(A - A_0 - Jt)\,/\,(A_0 + Jt)$"); ax.legend()
+    ax.ticklabel_format(axis="y", style="sci", scilimits=(0, 0))
+    fig.tight_layout()
+    fs.save(fig, "check_bubbles")
+
+
+def check_vesicles():
+    d = read("vesicles_energy.csv")
+    fig, ax = check()
+    for k in np.unique(d["curve"]):
+        m = (d["curve"] == k) & (d["t"] > 0)
+        fs.line(ax, d["t"][m], d["energy"][m], fs.QUAL[int(k) - 1], marker=False, label=rf"$\nu = {d['nu'][m][0]:.2f}$")
+    ax.set_xscale("log"); ax.xaxis.set_minor_formatter(NullFormatter())
+    ax.set_xlabel(r"time, $t$"); ax.set_ylabel(r"bending energy, $E$"); ax.legend(ncol=2)
+    fig.tight_layout()
+    fs.save(fig, "check_vesicles")
 
 
 def slope(ax, x0, y0, p, label, decades=1.0):
@@ -163,7 +174,74 @@ def step_control():
     fs.save(fig, "step_control")
 
 
-gallery()
-checks()
+def movie(data, name, ghost_every=10, fmt=".1f", width=3.6):
+    """A run as an animated GIF, docs/src/assets/<name>-<mode>.gif: every curve at each saved time, filled, and the
+    curves of every ghost_every-th frame left behind, faint; the time in the format fmt; width inches wide (at 110
+    dpi). A GIF has no partial
+    transparency: the page's background."""
+    from matplotlib.animation import FuncAnimation, PillowWriter
+    d = read(data)
+    times = np.unique(d["t"])
+    bg = "#1f2424" if fs.DARK else "#ffffff"
+    (x0, x1), (y0, y1) = (d["x"].min(), d["x"].max()), (d["y"].min(), d["y"].max())
+    pad = 0.04 * max(x1 - x0, y1 - y0)
+    w = width
+    fig, ax = plt.subplots(figsize=(w, w * (y1 - y0 + 4 * pad) / (x1 - x0 + 2 * pad)), facecolor=bg)
+    ax.set_facecolor(bg); ax.set_aspect("equal"); ax.set_axis_off()
+    ax.set_xlim(x0 - pad, x1 + pad); ax.set_ylim(y0 - pad, y1 + 3 * pad)    # room above for the time
+    fig.subplots_adjust(0, 0, 1, 1)
+    label = ax.text(0.02, 0.98, "", transform=ax.transAxes, ha="left", va="top", fontsize=10)
+    current = []
+
+    def frame(i):
+        t = times[i]
+        sel = d["t"] == t
+        while current:
+            current.pop().remove()
+        for cid in np.unique(d["curve"][sel]):
+            m = sel & (d["curve"] == cid)
+            x, y = d["x"][m], d["y"][m]
+            if i % ghost_every == 0:                  # leave the curve behind (the start too)
+                ax.plot(x, y, color=fs.GRAY, lw=0.6, alpha=0.6)
+            current.extend(ax.fill(x, y, color=fs.QUAL[0], alpha=0.15, lw=0))
+            current.extend(ax.plot(x, y, color=fs.QUAL[0], lw=1.2))
+        label.set_text(f"$t = {t:{fmt}}$")
+
+    hold = 15                                         # frames to pause on the last time
+    anim = FuncAnimation(fig, frame, frames=list(range(len(times))) + [len(times) - 1] * hold, blit=False)
+    out = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src", "assets",
+                       f"{name}-{fs.DOCS or 'light'}.gif")
+    anim.save(out, writer=PillowWriter(fps=12), dpi=110, savefig_kwargs={"facecolor": bg})
+    plt.close(fig)
+    print(os.path.normpath(out))
+
+
+def hero():
+    """The last frame of the Hele-Shaw movie as a still, for the home page: the bubble at t = 8, filled, and the
+    interface at each whole time before it, faint."""
+    d = read("hele_shaw_movie.csv")
+    times = np.unique(d["t"])
+    fig, ax = plt.subplots(figsize=(3.2, 3.2))
+    for t in times[(times > 0) & np.isclose(times % 1.0, 0.0)][:-1]:
+        m = d["t"] == t
+        ax.plot(d["x"][m], d["y"][m], color=fs.GRAY, lw=0.5, alpha=0.6)
+    m = d["t"] == times[-1]
+    ax.fill(d["x"][m], d["y"][m], color=fs.QUAL[0], alpha=0.15, lw=0)
+    ax.plot(d["x"][m], d["y"][m], color=fs.QUAL[0], lw=1.2)
+    ax.set_aspect("equal"); ax.set_axis_off()
+    fs.save(fig, "hero")
+
+
+check_mcf()
+check_vortex()
+check_hele_shaw()
+check_bubbles()
+check_vesicles()
 convergence()
 step_control()
+movie("mcf_movie.csv", "mean_curvature_flow", ghost_every=8, fmt=".3f")
+movie("vortex_movie.csv", "vortex_windup", ghost_every=20)
+movie("hele_shaw_movie.csv", "hele_shaw")
+movie("bubbles_movie.csv", "hele_shaw_bubbles")
+movie("vesicles_movie.csv", "vesicles", ghost_every=1000, fmt=".2g", width=5.4)
+hero()
