@@ -44,7 +44,9 @@ curves in the terminal, overlaid and colored by time; `dotplot(sol; animate = tr
   `curve_points(X)`, `curvature(X)`, `tangent_angles(X)`, `arclength_derivative(X, f)`. For a velocity field
   ``u(x)``, `velocity_components(X, u.(curve_points(X)))[1]` is ``u \cdot n``.
 - `symbol` is the stiff part of `U` (below); `q -> -q^2` is that of ``U = -\kappa``.
-- `dt` is a number or a function `dt(X, t)`. N is chosen to the tolerance `tol` and doubled when the curve needs
+- `dt` is a number or a function `dt(X, t)`; or `adaptive = true` chooses the step from the embedded error
+  estimate of ETDRK2, kept below `errtol` (default 1e-5, per step; `dt` is then the first step, or a bound on each
+  if a function; `dtmin`, `dtmax` bound it). Small steps where the curve moves fast, large ones once it relaxes. N is chosen to the tolerance `tol` and doubled when the curve needs
   it; `coarsen = true` also halves it once the curve has become smooth.
 - `verbose = true` prints a line at each saved time: the time, the steps, the last Δt, N and the velocity
   evaluations, with the wall time; and a line whenever N changes. `progress_line(integ)` is that line, for a loop of your own.
@@ -69,7 +71,8 @@ end
 integ.states, integ.U, integ.ids, integ.stats
 ```
 
-`solve(prob, ETDRK2(); tspan, dt, saveat)` runs the same loop as `evolve` on a problem.
+`solve(prob, ETDRK2(); tspan, dt, saveat)` runs the same loop as `evolve` on a problem (`adaptive = true`
+too).
 
 ## The velocity protocol
 
