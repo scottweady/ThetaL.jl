@@ -121,7 +121,7 @@ the deformation: `rigid_part`); the exponential weights keep a state at rest fix
   points along the curve explicitly: Δt ≲ s_α/(k_max |T|). A first-order symbol damps it; steps beyond it are
   unstable (test/test_stepping.jl, the manufactured ellipse).
 - **Frozen symbols** must bound the true stiffness (anisotropy: the maximum of γ + γ″ on the curve). With ETDRK2 a
-  symbol may overstate the true rate by half and must not understate it by more than a third (0 ≤ σ_true/σ ≤ 3/2);
+  symbol may overstate the true rate but must not understate it by more than a third (0 ≤ σ_true/σ ≤ 3/2);
   `check_symbol(problem)` measures the rates of the velocity and reports the step limit a weaker symbol leaves.
 - **Initial layer.** From a shape far from equilibrium under a stiff symbol (surface diffusion, σ = −q⁴), the first steps
   are first order in Δt: the small scales decay within a step and drive L_t, which the explicit update of L follows
@@ -134,8 +134,8 @@ the deformation: `rigid_part`); the exponential weights keep a state at rest fix
 U; per_curve)` (per curve, or one constant for all: only the total area kept), `frame_velocity(X, U)` (the velocity
 of the tracked points, for a mesh that follows them), `rigid_part(X, U)`, `noise_cutoff`, `spectral_tail`,
 `double_grid`/`halve_grid`, `measure_symbol(problem)` (the small-scale rates of the velocity, measured by perturbing
-each mode) and `check_symbol(problem; dt)` (whether the symbol bounds them); geometry of a state: `curve_points`, `curve_function`, `tangent_angles`, `curvature`,
-`arclength_derivative`, `area`, `centroid`, `perimeter`, `curve_moments`, `velocity_components`, `velocity_vectors`.
+each mode) and `check_symbol(problem; dt)` (whether the symbol bounds them); geometry of a state: `curve_points`,
+`curve_function`, `tangent_angles`, `curvature`, `arclength_derivative`, `area`, `centroid`, `perimeter`, `curve_moments`, `velocity_components`, `velocity_vectors`.
 
 ## Examples
 

@@ -115,7 +115,8 @@ are passed on: `k`, `ε`, `windows`, …) on each curve of `curves` (default all
 `dt_max` is the first h at which |G| exceeds max(1, e^{Re λ h}) (`Inf`: stable at every step).
 
 For ETDRK2 and real rates the condition at large steps is 0 ≤ λ/σ_g ≤ 3/2: a symbol may overstate the true rate
-by half, and must not understate it by more than a third (ExpEuler: 0 ≤ λ/σ_g ≤ 2). Below that a step limit
+(the mode is then damped less per step), and must not understate it by more than a third (ExpEuler:
+0 ≤ λ/σ_g ≤ 2, by up to half). Beyond that a step limit
 Δt ~ 1/|λ| remains at that mode, which a stiff velocity turns into Δt ~ q^{−p}.
 
 `ok`: with `dt`, whether `dt ≤ dt_limit`; without, whether no measured mode has a limit (`dt_limit = Inf`). A
