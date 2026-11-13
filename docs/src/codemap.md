@@ -34,7 +34,7 @@ julia -t 8 --project=docs docs/codemap.jl
 | `src/grid/` | `fourier.jl` (periodic grid functions: wavenumbers, spectral derivative and antiderivative, `double_grid`, `halve_grid`, a trigonometric interpolant), `work.jl` (their work arrays: in-place FFT plans and scratch vectors per N, kept per task) |
 | `src/curves/` | `state.jl` (the state and its geometry), `construct.jl` (`from_curve`, `from_arclength_samples`), `measures.jl` (utilities for callers) |
 | `src/stepping/` | `symbols.jl` (the rates σ(q) of a curve), `filter.jl` (`SpectralFilter`, `noise_cutoff`), `kinematics.jl` (`thetaL_rhs`, `rigid_part`, `frame_velocity`), `schemes.jl` (`ETDRK2`, `ExpEuler`, their weights), `carried.jl` (the step's part for carried state: transport, combination), `step.jl` (the generic step, `thetaL_step`) |
-| `src/problem/` | `evaluation.jl` (`Evaluation`, `StepFailure`, reading the velocity's result), `problem.jl` (`CurveProblem`), `carried.jl` (`CurveField`, `BulkState`: state carried with the curves) |
+| `src/problem/` | `evaluation.jl` (`Evaluation`, `StepFailure`, reading the velocity's result), `problem.jl` (`CurveProblem`), `carried.jl` (`CurveField`, `BulkState`: state carried with the curves), `symbol_check.jl` (`measure_symbol`, `check_symbol`: the velocity's stiffness measured against the symbol) |
 | `src/integrator/` | `integrator.jl` (`ThetaLIntegrator`, `init`, `advance!`, `step!`), `edits.jl`, `checkpoint.jl` |
 | `src/drivers/` | `evolve.jl` (`evolve`, `solve`, `Evolution`, `save_curves`) |
 | `ext/ThetaLDotPlotsExt.jl` | `dotplot` of a curve, of curves and of an `Evolution`, loaded with DotPlots (a weak dependency) |

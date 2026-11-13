@@ -14,7 +14,8 @@ What a velocity evaluation is for, passed to `velocity(states, ev; warm)`:
 
 - `t`: the time of the evaluation (exact: at the end of a step, the time stepped to);
 - `kind`: `:init` (the start of a run, or the first evaluation after a curve edit), `:stage` (inside a step) or
-  `:end` (the end of a step; its result is also the next step's first stage);
+  `:end` (the end of a step; its result is also the next step's first stage); `:probe` for a perturbed state of
+  `measure_symbol`/`check_symbol` (no step: `stage = 0`, `h = 0.0`; nothing of it is kept);
 - `stage`, `c`: the stage index and its fraction of the step (`0` and `0.0` at `:init`, `c = 1` at `:end`);
 - `h`: the step being taken (`0.0` at `:init`);
 - `attempt`: 1, or more when the step is a retry after a rejection;

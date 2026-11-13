@@ -40,4 +40,5 @@ four-lobed flower, ETDRK2, estimate held below 10⁻⁴): from 10⁻⁸ through 
 
 The rates are held for a step at the start-of-step length. A symbol that varies along the curve (anisotropy) is
 frozen at a bound; stiffness that is not diagonal in ``k`` (variable coefficients, coupling between curves) cannot
-be expressed.
+be expressed. `check_symbol` measures the rates of the velocity, globally and in windows along the curve
+(`windows = m`), and gives the step limit the symbol leaves ([Measuring the symbol](@ref)).

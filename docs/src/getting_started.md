@@ -81,7 +81,7 @@ too).
 | `ev.` | |
 |:--|:--|
 | `t` | the time; at the end of a step, exactly the time stepped to |
-| `kind` | `:init` (the start, or after a curve edit), `:stage` (inside a step), `:end` (the end of a step) |
+| `kind` | `:init` (the start, or after a curve edit), `:stage` (inside a step), `:end` (the end of a step), `:probe` (a perturbed state of `measure_symbol`) |
 | `stage`, `c`, `h` | the stage, its fraction of the step, the step |
 | `attempt` | 1, or more when the step is retried after a rejection |
 | `ids`, `tags` | per curve, a stable id and your own tag (ThetaL never reads it) |
@@ -100,7 +100,8 @@ as a function of its wavenumber along the curve, ``q = 2\pi|k|/L``: `symbol = q 
 Hou, Lowengrub & Shelley 1994). ``\sigma < 0``
 damps the mode. When it depends on the curve, give `symbol = (q, X) -> …`, with `X` the curve (a `ThetaLState`); it
 is frozen per curve at the start of each step. A table or a quadrature works as well as a formula (see
-[Symbols, filter and resolution](@ref)).
+[Symbols, filter and resolution](@ref)). When the rate is not known (a boundary integral), `check_symbol(prob)`
+measures it and says whether the symbol bounds it.
 
 ## State carried with the curves
 

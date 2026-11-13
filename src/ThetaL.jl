@@ -34,8 +34,9 @@ Code map (src/):
 - `curves/`: the state (`state.jl`), states from curves (`construct.jl`), utilities for callers (`measures.jl`).
 - `stepping/`: the stiff symbol (`symbols.jl`), the spectral filter (`filter.jl`), the kinematics and the rigid
   split (`kinematics.jl`), the schemes and their weights (`schemes.jl`), the generic step (`step.jl`).
-- `problem/`: the velocity protocol (`evaluation.jl`: `Evaluation`, `StepFailure`), `CurveProblem`, and the state
-  carried with the curves (`carried.jl`: `CurveField`, `BulkState`; its step in `stepping/carried.jl`).
+- `problem/`: the velocity protocol (`evaluation.jl`: `Evaluation`, `StepFailure`), `CurveProblem`, the state
+  carried with the curves (`carried.jl`: `CurveField`, `BulkState`; its step in `stepping/carried.jl`), and the
+  stiffness of a velocity measured against its symbol (`symbol_check.jl`: `measure_symbol`, `check_symbol`).
 - `integrator/`: `ThetaLIntegrator`, `init`, `advance!`, `step!` (`integrator.jl`), curve edits (`edits.jl`),
   `checkpoint` (`checkpoint.jl`).
 - `drivers/`: `evolve`, `solve`, `Evolution`, `save_curves`.
@@ -56,6 +57,8 @@ export ThetaLState, from_curve, from_arclength_samples, curve_function, curve_po
 export min_distance, curve_integral, offset_curve, remove_area_rate, frame_velocity
 # the problem and the velocity protocol
 export CurveProblem, CurveField, BulkState, Evaluation, StepFailure, RigidMotion, rigid_velocity, rigid_part
+# the stiffness of a velocity, measured, and the symbol checked against it
+export measure_symbol, check_symbol
 # schemes and the step
 export OneStepScheme, ETDRK2, ExpEuler, SpectralFilter, noise_cutoff, thetaL_rhs, thetaL_step, StepResult
 # the integrator and its edits
@@ -87,6 +90,8 @@ include("stepping/carried.jl")
 include("integrator/integrator.jl")
 include("integrator/edits.jl")
 include("integrator/checkpoint.jl")
+# the symbol checked against the measured stiffness
+include("problem/symbol_check.jl")
 # the drivers
 include("drivers/evolve.jl")
 
