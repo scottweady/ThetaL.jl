@@ -50,14 +50,24 @@ where the translation ``V`` and rotation rate ``\Omega`` about the center ``x_c`
 the rigid normal velocity closest to ``U`` on the grid (least squares; `rigid_part`). The rigid part moves the
 curve without moving the points along it: it adds ``\Omega`` to ``\theta_t`` and carries ``x_0`` on the rigid
 motion, ``z' = i\Omega z + a`` in complex form, which the step integrates exactly. The deformation ``U_d`` goes
-through the equations above. Under a rigid motion ``\hat\phi_k`` (``k \neq 0``) and ``L`` stay fixed and only the
-mean of ``\phi`` moves, by ``\Omega h``, which every scheme integrates exactly: translation and rotation are
-exact to roundoff at any time step ([Method overview](@ref), panel (a)).
+through the equations above; it moves ``x_0`` by ``d = U_d(0)\, n(0)``, a velocity of the curve that turns with
+it, so each stage's ``d`` is taken back to the frame of the start of the step (``e^{-i\Theta} d``, ``\Theta`` the
+rotation that stage's state has made), combined with the scheme's weights, and turned with the step's rotation.
+Under a rigid motion ``\hat\phi_k`` (``k \neq 0``) and ``L`` stay fixed and only the mean of ``\phi`` moves, by
+``\Omega h``, which every scheme integrates exactly: translation and rotation are exact to roundoff at any time
+step ([Method overview](@ref), panel (a)).
 
-The split needs only ``U``, not the material tangential velocity. A curve whose shape is steady while material flows
-along it (an edge current) has ``U = 0`` and stays exactly steady. On a circle the rotation is invisible in ``U``
-and is left out (`rigid_part` drops it when ``(x - x_c) \cdot \tau`` vanishes to roundoff). `CurveProblem(...;
-rigid = :translation)` takes out the translation only; `rigid = :none` gives the plain Hou–Lowengrub–Shelley step.
+The split needs only ``U``, not the material tangential velocity, since the tangential motion does not change the
+curve. A curve whose shape is steady while material flows along it (an edge current) has ``U = 0`` and stays
+exactly steady. Near a circle the rotation hardly shows in ``U`` (a circle turning about its center has ``U = 0``),
+so noise in ``U`` is fitted as a rotation rate of any size, different at every stage. That is harmless: the rotation
+of a near-circle about its center hardly moves it, and as ``x_0``'s drift turns with the curve, the points only
+slide along it (test/test_stepping.jl, a near-circle with noise in ``U``). When the problem transports fields along
+the curves, the velocity gives the material tangential velocity ``W``, and the rigid part is fitted to the whole
+velocity ``u = U n + W\tau`` instead: ``V`` the mean of ``u`` and
+``\Omega = \sum (x - x_c) \times u / \sum |x - x_c|^2``, well determined for every curve, so the points follow the
+material. `CurveProblem(...; rigid = :translation)` takes out the translation only; `rigid = :none` gives the plain
+Hou–Lowengrub–Shelley step.
 
 ## The velocity of the tracked points
 

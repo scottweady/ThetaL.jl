@@ -171,6 +171,42 @@ end
     @test d < 1e-9 && abs(a.L - b.L) < 1e-12
 end
 
+@testset "a near-circle with noise in U: the spurious rotation does not move the curve" begin
+    # within 1e-6 of a circle U hardly shows a rotation, so 1e-6 of noise in U fits an Ω of order one, different at
+    # each stage. That turns the curve's points along it, but the curve must stay the one stepped without a rigid
+    # part: x₀'s drift turns with the curve (each stage's drift in the frame of the start of the step)
+    N, η = 128, 1e-6
+    X0 = from_curve(ξ -> (cos(ξ) * (1 + 1e-6cos(2ξ)), sin(ξ)), N; tol=1e-13); α = 2π .* (0:N-1) ./ N
+    function run(rigid)
+        k = 0; Ωmax = 0.0
+        noise() = (k += 1; η .* [sum(sin(m * a + k + m) / m for m in 1:4) for a in α])   # the same at every call k
+        vel(Xs, ev; warm) = [-curvature(X) .+ noise() for X in Xs]
+        integ = init(CurveProblem([X0], vel; symbol=q -> -q^2, rigid), ETDRK2())
+        for j in 1:20
+            advance!(integ, j * 0.005); Ωmax = max(Ωmax, abs(integ.rigid[1].rotation_rate))
+        end
+        integ.states[1], Ωmax
+    end
+    (a, Ω), (b, _) = run(:full), run(:none)
+    d = curve_distance(curve_function(b), curve_points(a)); dc = norm(centroid(a) - centroid(b))
+    @printf("near-circle with noise, :full against :none: max |Ω| %.2f, distance %.1e, centroids %.1e\n", Ω, d, dc)
+    @test Ω > 0.1                                   # the case is the one meant: a large spurious rotation
+    @test d < 1e-9 && dc < 1e-9 && abs(a.L - b.L) < 1e-12
+end
+
+@testset "the rigid fit from the whole velocity (U and W)" begin
+    # u = V + Ω ẑ × (x − p): from U alone a circle's rotation is invisible, from (U, W) it is exact for any curve
+    u(x) = Vec2(0.3, -0.2) + 0.7 * Vec2(-(x[2] - 0.4), x[1] + 1.1)
+    for X in (ThetaLState(zeros(64), 2π, Vec2(0, -1)), smooth_state(128))
+        U, W = velocity_components(X, u.(curve_points(X)))
+        m, Ud = rigid_part(X, U; W)
+        @test m.rotation_rate ≈ 0.7 atol = 1e-13
+        @test maximum(norm(rigid_velocity(m, x) - u(x)) for x in curve_points(X)) < 1e-13
+        @test maximum(abs, Ud) < 1e-13
+        @test maximum(norm.(frame_velocity(X, U; W) .- u.(curve_points(X)))) < 1e-13
+    end
+end
+
 @testset "filter" begin
     N, kc = 64, 16
     f = _filter(N, 36, kc); k = _kvec(N)

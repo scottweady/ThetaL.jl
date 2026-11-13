@@ -71,7 +71,9 @@ sol = solve(prob; tspan = (0, 1), adaptive = true, errtol = 1e-5)      # the ste
   HLS 1994), `q -> -q^4` (U = κ_ss); or `(q, X) -> σ` when it depends on the curve X (anisotropy). σ < 0 damps;
   it is frozen per curve at the start of each step, and a positive σ gives a warning.
 - **`rigid`**: the rigid motion (`:full`, `:translation`) taken out of U and integrated exactly; `:none` for the
-  plain Hou–Lowengrub–Shelley step.
+  plain Hou–Lowengrub–Shelley step. It is fitted to U (near a circle, where U hardly shows a rotation, a noisy Ω
+  only slides the points along the curve), or to U n + W τ when the problem transports fields and the velocity gives
+  W (the points then follow the material).
 - **The integrator** (`ThetaLIntegrator`): `integ.t`, `integ.states`, `integ.U`, `integ.ctx`, `integ.ids`,
   `integ.tags`, `integ.rigid` (each curve's `RigidMotion` over the last step), `integ.stats` (steps, evaluations,
   rejections, `error_estimate`, `last_rejection`). Read them; change them only through the functions below.
@@ -132,7 +134,7 @@ symbol.
 
 `min_distance(states)`, `curve_integral(X, f)`, `offset_curve(X, δ)` (the parallel curve), `remove_area_rate(states,
 U; per_curve)` (per curve, or one constant for all: only the total area kept), `frame_velocity(X, U)` (the velocity
-of the tracked points, for a mesh that follows them), `rigid_part(X, U)`, `noise_cutoff`, `spectral_tail`,
+of the tracked points, for a mesh that follows them), `rigid_part(X, U; W)`, `noise_cutoff`, `spectral_tail`,
 `double_grid`/`halve_grid`, `measure_symbol(problem)` (the small-scale rates of the velocity, measured by perturbing
 each mode) and `check_symbol(problem; dt)` (whether the symbol bounds them); geometry of a state: `curve_points`,
 `curve_function`, `tangent_angles`, `curvature`, `arclength_derivative`, `area`, `centroid`, `perimeter`, `curve_moments`, `velocity_components`, `velocity_vectors`.

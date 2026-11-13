@@ -33,20 +33,25 @@ struct StepResult
 end
 
 # What one stage contributes to the step, for one curve: the explicit remainder R = θ_t − σφ̂ (half spectrum), L_t, and
-# the rigid motion with the deformation's drift of x₀, as the coefficients of z′ = iΩz + a (complex x₀).
+# the rigid motion as the coefficients of z′ = iΩz + a (complex x₀), and the deformation's drift d of x₀ with the rigid
+# rotation Θ the stage's state has turned through since the start of the step (d turns with the curve: e^{−iΘ}d is
+# the drift in the frame of the start).
 struct _StageRecord
     R::Vector{ComplexF64}
     Lt::Float64
     motion::RigidMotion
     Ω::Float64
     a::ComplexF64
+    d::ComplexF64
+    Θ::Float64
 end
 
 # (φ̂ from the state's cache: no FFT of φ). With `T` given, the frame's tangential velocity is written into it.
 function _stage_record(X::ThetaLState, U::Vector{Float64}, σ::Vector{Float64}, filt::Vector{Float64}, rigid::Symbol,
-                       T::Union{Nothing,Vector{Float64}}=nothing)
+                       T::Union{Nothing,Vector{Float64}}=nothing, Θ::Float64=0.0,
+                       W::Union{Nothing,Vector{Float64}}=nothing)
     w = _work(length(X.φ)); Ud = _take_r(w)
-    motion = _rigid_part!(Ud, X, U, rigid)
+    motion = _rigid_part!(Ud, X, U, rigid, W)            # (from u = U n + W τ when the velocity gives W)
     R = _take_h(w)                                      # (handed back at the end of the step)
     Lt, drift = _thetaL_rhs_hat!(R, X, Ud, filt, T)
     T === nothing || _frame_tangential!(T, X, motion)
@@ -58,9 +63,13 @@ function _stage_record(X::ThetaLState, U::Vector{Float64}, σ::Vector{Float64}, 
     end
     _give!(w, Ud)
     V, xc = motion.translation, motion.center
-    a = complex(V[1] + drift[1], V[2] + drift[2]) - im * Ω * complex(xc[1], xc[2])
-    _StageRecord(R, Lt, motion, Ω, a)
+    a = complex(V[1], V[2]) - im * Ω * complex(xc[1], xc[2])
+    _StageRecord(R, Lt, motion, Ω, a, complex(drift[1], drift[2]), Θ)
 end
+
+# the material tangential velocity of curve c, if the evaluation gave one (a problem with fields transported along the
+# curves requires it)
+_curve_W(aux::_Aux, c::Int) = aux.W === nothing ? nothing : aux.W[c]
 
 # x₀ after a time h on z′ = iΩz + a (exact for constant Ω, a): z ← e^{iΩh} z + h ϕ₁(iΩh) a
 function _rigid_flow(x0::Vec2, Ω::Float64, a::ComplexF64, h::Float64)
@@ -143,12 +152,15 @@ function _combine!(out::Vector{ComplexF64}, X::ThetaLState, φh::Vector{ComplexF
         out[j] = (E[j] * φh[j] + h * acc) * filt[j]
     end
     out[1] = real(out[1]); iseven(N) && (out[n] = real(out[n]))
-    Lacc = 0.0; Ω = 0.0; a = 0.0im
+    Lacc = 0.0; Ω = 0.0; a = 0.0im; D = 0.0im
     for k in 1:m
         w = W0[k][1]
         Lacc += w * rec[k].Lt; Ω += (w / c) * rec[k].Ω; a += (w / c) * rec[k].a
+        D += w * cis(-rec[k].Θ) * rec[k].d                 # the drifts in the frame of the start
     end
-    out, X.L + h * Lacc, _rigid_flow(X.x0, Ω, a, c * h)
+    # x₀ on the rigid motion, plus the deformation's drift turned with the curve: z′ = iΩz + a + e^{iΩt}D/c
+    x0 = _rigid_flow(X.x0, Ω, a, c * h); Θ = Ω * c * h; δ = h * cis(Θ) * D
+    out, X.L + h * Lacc, x0 + Vec2(real(δ), imag(δ)), Θ
 end
 
 # The state with half spectrum φh, length L and point x0, φh kept as its cached spectrum
@@ -231,14 +243,15 @@ Base.@nospecializeinfer function _thetaL_step(scheme::OneStepScheme, problem::Cu
     # the start: filter, frozen symbol and the step's weights, Fourier φ and the first stage's record, per curve
     filt = Vector{Vector{Float64}}(undef, n); σ = similar(filt); φh = Vector{Vector{ComplexF64}}(undef, n)
     W = Vector{_StepWeights}(undef, n); W0 = _step_weights(scheme, [0.0], h)      # (W0: the weights at z = 0)
-    rec = [Vector{_StageRecord}(undef, ns) for _ in 1:n]
+    rec = [Vector{_StageRecord}(undef, ns) for _ in 1:n]; Θ = [zeros(ns) for _ in 1:n]   # (Θ: each stage's rotation)
     for c in 1:n
         N = length(states[c].φ)
         filt[c] = _cached_filter(N, scheme.filter)
         σ[c] = _curve_rates(problem.symbol, states[c], _work(N).absk)
         W[c] = _step_weights(scheme, σ[c], h, _work(N))
         φh[c] = _phihat(states[c])
-        rec[c][1] = _stage_record(states[c], U[c], σ[c], filt[c], problem.rigid, T === nothing ? nothing : T[c])
+        rec[c][1] = _stage_record(states[c], U[c], σ[c], filt[c], problem.rigid, T === nothing ? nothing : T[c], 0.0,
+                                  _curve_W(aux, c))
     end
     carried && _barrier(_carried_records!)(cs, problem, 1, states, rec, aux)
 
@@ -248,7 +261,7 @@ Base.@nospecializeinfer function _thetaL_step(scheme::OneStepScheme, problem::Cu
         stage_states = Vector{ThetaLState}(undef, n)
         for c in 1:n
             N = length(states[c].φ)
-            φi, Li, x0i = _combine!(Vector{ComplexF64}(undef, N ÷ 2 + 1), states[c], φh[c], W[c].E[i], W[c].A[i],
+            φi, Li, x0i, Θ[c][i] = _combine!(Vector{ComplexF64}(undef, N ÷ 2 + 1), states[c], φh[c], W[c].E[i], W[c].A[i],
                                     W0.A[i], filt[c], rec[c], i - 1, nodes[i], h)
             Li > 0 || return reject(:nonpositive_length, NaN, evaluations)
             stage_states[c] = _state_from_spectrum(φi, N, Li, x0i)
@@ -265,7 +278,7 @@ Base.@nospecializeinfer function _thetaL_step(scheme::OneStepScheme, problem::Cu
         evaluations += 1
         for c in 1:n
             rec[c][i] = _stage_record(stage_states[c], Ui[c], σ[c], filt[c], problem.rigid,
-                                      T === nothing ? nothing : T[c])
+                                      T === nothing ? nothing : T[c], Θ[c][i], _curve_W(auxi, c))
         end
         carried && _barrier(_carried_records!)(cs, problem, i, stage_states, rec, auxi)
     end
@@ -274,11 +287,11 @@ Base.@nospecializeinfer function _thetaL_step(scheme::OneStepScheme, problem::Cu
     end_states = Vector{ThetaLState}(undef, n); err = has_error_estimate(scheme) ? 0.0 : NaN
     for c in 1:n
         N = length(states[c].φ); w = _work(N)
-        φn, Ln, x0n = _combine!(Vector{ComplexF64}(undef, w.n), states[c], φh[c], W[c].E[ns+1], W[c].b, W0.b, filt[c],
+        φn, Ln, x0n, _ = _combine!(Vector{ComplexF64}(undef, w.n), states[c], φh[c], W[c].E[ns+1], W[c].b, W0.b, filt[c],
                                 rec[c], ns, 1.0, h)
         Ln > 0 || return reject(:nonpositive_length, NaN, evaluations)
         if has_error_estimate(scheme)
-            φe, Le, x0e = _combine!(_take_h(w), states[c], φh[c], W[c].E[ns+1], W[c].b̂, W0.b̂, filt[c], rec[c], ns,
+            φe, Le, x0e, _ = _combine!(_take_h(w), states[c], φh[c], W[c].E[ns+1], W[c].b̂, W0.b̂, filt[c], rec[c], ns,
                                     1.0, h)
             for j in eachindex(φe)
                 φe[j] = φn[j] - φe[j]

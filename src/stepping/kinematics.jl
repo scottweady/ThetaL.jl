@@ -78,25 +78,28 @@ function rigid_velocity(m::RigidMotion, x)
 end
 
 """
-    rigid_part(X, U; mode = :full) -> (motion::RigidMotion, U_deformation)
+    rigid_part(X, U; mode = :full, W = nothing) -> (motion::RigidMotion, U_deformation)
 
-The rigid motion in the normal velocity `U` of the curve `X`, and the rest. The motion is the translation V and
-rotation rate Ω about the center x_c (the mean of the grid points) whose normal velocity
-U_rig = V·n − Ω (x − x_c)·τ is closest to `U` on the grid (least squares; equal arclength);
-`U_deformation = U − U_rig`.
+The rigid motion in the velocity of the curve `X`, and the rest of its normal velocity `U`. The motion is the
+translation V and rotation rate Ω about the center x_c (the mean of the grid points), fitted by least squares on the
+grid (equal arclength); `U_deformation = U − U_rig`, with U_rig = V·n − Ω (x − x_c)·τ its normal velocity.
 
-- `mode = :full`: translation and rotation. The rotation is left out (Ω = 0) when the curve gives it no weight:
-  the rms of (x − x_c)·τ, once the translations are projected out, below 10⁻¹² of the rms radius (a circle).
-- `mode = :translation`: translation only.
-- `mode = :none`: no rigid part (`NO_RIGID_MOTION`, U returned as it is).
+- Without `W`, the fit is to the normal velocity: U_rig closest to `U`. A curve near a circle hardly shows its
+  rotation in U (a circle turning about its center has U = 0), so its Ω is then poorly determined: noise in U
+  becomes a rotation rate. The step is built so that this does not move the curve (only the points slide along it).
+- With `W` (the material's tangential velocity), the fit is to the whole velocity u = U n + W τ: V the mean of u,
+  Ω = Σ (x − x_c) × u / Σ |x − x_c|², well determined for every curve.
+- `mode = :full`: translation and rotation; `mode = :translation`: translation only; `mode = :none`: no rigid part
+  (`NO_RIGID_MOTION`, U returned as it is).
 """
-function rigid_part(X::ThetaLState, U::AbstractVector; mode::Symbol=:full)
+function rigid_part(X::ThetaLState, U::AbstractVector; mode::Symbol=:full, W::Union{Nothing,AbstractVector}=nothing)
     Ud = Vector{Float64}(undef, length(X.φ))
-    _rigid_part!(Ud, X, U, mode), Ud
+    _rigid_part!(Ud, X, U, mode, W === nothing ? nothing : _vec64(W)), Ud
 end
 
-# the rigid motion, with U_deformation written into Ud
-function _rigid_part!(Ud::Vector{Float64}, X::ThetaLState, U::AbstractVector, mode::Symbol)
+# the rigid motion, with U_deformation written into Ud; from U alone, or from u = U n + W τ when W is given
+function _rigid_part!(Ud::Vector{Float64}, X::ThetaLState, U::AbstractVector, mode::Symbol,
+                      W::Union{Nothing,Vector{Float64}}=nothing)
     mode in (:full, :translation, :none) || throw(ArgumentError("rigid mode must be :full, :translation or :none, got :$mode"))
     N = length(X.φ)
     if mode === :none
@@ -117,6 +120,7 @@ function _rigid_part!(Ud::Vector{Float64}, X::ThetaLState, U::AbstractVector, mo
         sn[j], cs[j] = sincos(_α(j, N) + X.φ[j]); r = x[j] - xc
         b[j] = -(r[1] * cs[j] + r[2] * sn[j]); r2 += r[1]^2 + r[2]^2
     end
+    W === nothing || return _rigid_from_velocity!(Ud, X, U, W, mode, x, xc, sn, cs, b, r2, w)
     # translation: the 2×2 normal equations for n_x = sin θ, n_y = −cos θ, applied to U and to b
     g11 = 0.0; g12 = 0.0; g22 = 0.0; u1 = 0.0; u2 = 0.0; b1 = 0.0; b2 = 0.0
     for j in 1:N
@@ -144,16 +148,37 @@ function _rigid_part!(Ud::Vector{Float64}, X::ThetaLState, U::AbstractVector, mo
     RigidMotion(V, Ω, xc)
 end
 
+# the rigid motion closest to u = U n + W τ on the grid: V the mean of u, Ω = Σ r × u / Σ |r|² (r = x − x_c, x_c the
+# mean of x, so the two decouple); U_deformation = U − (V·n + Ω b), b = −r·τ. (Gives back the work vectors.)
+function _rigid_from_velocity!(Ud::Vector{Float64}, X::ThetaLState, U::AbstractVector, W::Vector{Float64}, mode::Symbol,
+                               x::Vector{Vec2}, xc::Vec2, sn::Vector{Float64}, cs::Vector{Float64}, b::Vector{Float64},
+                               r2::Float64, w::_GridWork)
+    N = length(X.φ); length(W) == N || throw(DimensionMismatch("W has $(length(W)) values for $N points"))
+    V = Vec2(0.0, 0.0); L = 0.0
+    for j in 1:N                                    # u = U n + W τ, n = (sin θ, −cos θ), τ = (cos θ, sin θ)
+        u = Vec2(U[j] * sn[j] + W[j] * cs[j], -U[j] * cs[j] + W[j] * sn[j]); r = x[j] - xc
+        V += u; L += r[1] * u[2] - r[2] * u[1]
+    end
+    V /= N
+    Ω = mode === :full && r2 > 0 ? L / r2 : 0.0
+    for j in 1:N
+        Ud[j] = U[j] - (V[1] * sn[j] - V[2] * cs[j] + Ω * b[j])
+    end
+    _give!(w, sn, cs, b)
+    RigidMotion(V, Ω, xc)
+end
+
 """
-    frame_velocity(X, U; rigid = :full) -> Vector{Vec2}
+    frame_velocity(X, U; rigid = :full, W = nothing) -> Vector{Vec2}
 
 The velocity of the tracked grid points of `X` under the normal velocity `U`: U n + T τ, with T the tangential
 velocity of the step (the rigid motion's, plus the equal-arclength one of the deformation, T(0) = 0). This is what
-a moving bulk mesh attached to the curve's points follows. `rigid` as in `rigid_part`.
+a moving bulk mesh attached to the curve's points follows. `rigid` and `W` as in `rigid_part` (the step passes W
+when the problem has fields transported along the curves).
 """
-function frame_velocity(X::ThetaLState, U::AbstractVector; rigid::Symbol=:full)
+function frame_velocity(X::ThetaLState, U::AbstractVector; rigid::Symbol=:full, W::Union{Nothing,AbstractVector}=nothing)
     N = length(X.φ)
-    motion, Ud = rigid_part(X, U; mode=rigid)
+    motion, Ud = rigid_part(X, U; mode=rigid, W=W)
     Td = Vector{Float64}(undef, N); _hls_tangential_velocity!(Td, X, Ud)
     x = curve_points(X); u = Vector{Vec2}(undef, N)
     for j in 1:N

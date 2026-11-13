@@ -47,6 +47,26 @@ end
     end
 end
 
+@testset "a field on a near-circle with noise in U: the frame follows the material" begin
+    # within 1e-6 of a circle, 1e-6 of noise in U would fit an Ω of order one; the problem transports a field, so the
+    # velocity gives W and the rigid part is fitted to U n + W τ: Ω stays at the noise, the points stay with the
+    # material (W = 0), and the field on them is unchanged
+    N, η = 128, 1e-6
+    X0 = from_curve(ξ -> (cos(ξ) * (1 + 1e-6cos(2ξ)), sin(ξ)), N; tol=1e-13); α = grid(N); c0 = cos.(3 .* α)
+    k = 0
+    noise() = (k += 1; η .* [sum(sin(m * a + k + m) / m for m in 1:4) for a in α])
+    velocity(Xs, ev; warm) = (; U=[-curvature(X) .+ noise() for X in Xs], W=[zeros(length(X.φ)) for X in Xs])
+    integ = init(CurveProblem([X0], velocity; symbol=q -> -q^2, fields=(; c=CurveField([c0]; transport=:material))),
+                 ETDRK2())
+    Ω = 0.0
+    for j in 1:20
+        advance!(integ, j * 0.005); Ω = max(Ω, abs(integ.rigid[1].rotation_rate))
+    end
+    dc = maximum(abs, integ.fields.c[1] .- c0)
+    @printf("field on a near-circle with noise: max |Ω| %.1e, field change %.1e\n", Ω, dc)
+    @test Ω < 1e-5 && dc < 1e-5
+end
+
 @testset "a conserved density under a deforming flow" begin
     # u = Ax deforms the curve; ∫c ds = (L/N) Σc is kept to roundoff by the conservation form
     A = [0.3 0.5; -0.4 -0.1]; u(x) = Vec2(A * x)
